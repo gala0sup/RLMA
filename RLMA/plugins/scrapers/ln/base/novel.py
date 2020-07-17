@@ -1,8 +1,14 @@
-'''Base class for novel scrapers'''
+'''Base class for light novel scrapers'''
+
 import json
 
 class NotInitializedError(Exception):
-    pass
+    '''when info is called before get_info'''
+
+    def __init__(self,message="info() is called before calling get_info('link')"):
+        self.message = message
+        super().__init__(self.message)
+
 
 class Base():
 
@@ -23,7 +29,7 @@ class Base():
             'discription':''
         }
         self.chapter_list = {}
-
+        
     def _get_webpage(self):
         pass
 
@@ -39,4 +45,5 @@ class Base():
     def info(self):
         if not self.initialized:
             raise NotInitializedError()
-        pass
+        else:
+            return json.dumps({'link':self.link,**self.about,**self.chapter_list})
