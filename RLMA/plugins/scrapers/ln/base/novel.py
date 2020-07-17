@@ -1,6 +1,7 @@
 '''Base class for light novel scrapers'''
 
 import json
+import logging
 
 class NotInitializedError(Exception):
     '''when info is called before get_info'''
@@ -35,6 +36,8 @@ class Base():
         }
         self.chapter_list = {}
         
+
+        self.headers = {'User-Agent': 'RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     def _get_webpage(self):
         pass
 
@@ -42,9 +45,14 @@ class Base():
         pass
 
     def get_info(self,link):
-        self._get_webpage()
-        self._prase_webpage()
+        logging.info("getting info of (%s)",link)
+        self.link = link
         self.initialized =True
+        try:
+            self._get_webpage()
+            self._prase_webpage()
+        except:
+            logging.error("unable to retrive info of (%s)",self.link)
 
 
     def info(self,full=False):
