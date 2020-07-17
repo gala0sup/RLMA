@@ -13,12 +13,17 @@ class NotInitializedError(Exception):
 class Base():
 
     def __init__(self,link=None):
-        self.initialized = False
-        self.link = link
+        
+        if link:
+            self.initialized = True
+        else:
+            self.initialized = False
+
+        
         self.webpage = None
         self.prased_webpage = None
 
-
+        self.link = link
         self.about = {
             'name':'',
             'chapters':'',
