@@ -42,8 +42,11 @@ class Base():
         self.initialized =True
 
 
-    def info(self):
+    def info(self,full=False):
         if not self.initialized:
             raise NotInitializedError()
         else:
-            return json.dumps({'link':self.link,**self.about,**self.chapter_list})
+            if full:
+                return json.dumps({'link':self.link,**self.about,**self.chapter_list})
+            else:
+                return json.dumps({'link':self.link,**self.about})
