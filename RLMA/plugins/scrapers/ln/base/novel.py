@@ -26,6 +26,7 @@ class Base():
 
         self.link = link
         self.about = {
+            'CoverImage':'',
             'name':'',
             'chapters':'',
             'author':'',
@@ -33,6 +34,7 @@ class Base():
             'release':'',
             'updated':'',
             'discription':''
+
         }
         self.chapter_list = {}
         
@@ -44,6 +46,10 @@ class Base():
     def _prase_webpage(self):
         pass
 
+    def _set_info(self):
+        logging.debug("settings up vars")
+        pass
+
     def get_info(self,link):
         logging.info("getting info of (%s)",link)
         self.link = link
@@ -51,6 +57,7 @@ class Base():
         try:
             self._get_webpage()
             self._prase_webpage()
+            self._set_info()
         except:
             logging.error("unable to retrive info of (%s)",self.link)
 
