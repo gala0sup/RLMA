@@ -1,2 +1,4 @@
 #_python_env_#
 venv/
+
+__tmp__*
