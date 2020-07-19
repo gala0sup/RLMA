@@ -10,6 +10,34 @@ class NotInitializedError(Exception):
         self.message = message
         super().__init__(self.message)
 
+class about_dict(object):
+    def __init__(self):
+        self.__dict__ = {
+            'CoverImage':None,
+            'Name':None,
+            'Chapters':None,
+            'Author':None,
+            'Status':None,
+            'Release':None,
+            'Updated':None,
+            'Summary':None
+        }
+    def __setitem__(self, key, value):
+        if key not in self.__dict__.keys():
+            raise KeyError('no New key Allowed')
+
+        self.__dict__[key] = value
+        
+    def __getitem__(self, key):
+        return self.__dict__[key]
+    def keys(self):
+        return self.__dict__.keys()
+        
+    def update(self, *args, **kwargs):
+        raise NotImplementedError("use 'dict['key'] = value' instead")
+        
+    def items(self):
+        return self.__dict__.items()
 
 class Base():
 
@@ -25,17 +53,7 @@ class Base():
         self.prased_webpage = None
         self.EMPTY = None
         self.link = link
-        self.about = {
-            'CoverImage':self.EMPTY,
-            'Name':self.EMPTY,
-            'Chapters':self.EMPTY,
-            'Author':self.EMPTY,
-            'Status':self.EMPTY,
-            'Release':self.EMPTY,
-            'Updated':self.EMPTY,
-            'Summary':self.EMPTY
-
-        }
+        self.about = about_dict()
         self.chapter_list = {}
         '''{chapter_number:{chapter_name:chapter_link}}'''
         
