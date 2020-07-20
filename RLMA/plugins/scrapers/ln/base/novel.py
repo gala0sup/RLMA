@@ -97,10 +97,10 @@ class Base():
         self.chapter_list = chapter_dict()
         '''{chapter_number:{chapter_name:chapter_link}}'''
         self.headers = {'User-Agent': 'RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-    def _get_webpage(self):
+    def _get_webpage(self,log=True):
         pass
 
-    def _prase_webpage(self):
+    def _prase_webpage(self,log=True):
         pass
 
     def _set_info(self):
@@ -129,3 +129,8 @@ class Base():
                 return json.dumps({'link':self.link,**self.about,**self.chapter_list})
             else:
                 return json.dumps({'link':self.link,**self.about})
+    def chapters(self):
+        if not self.initialized:
+            raise NotInitializedError("Chapters() called before calling get_info('link')")
+        else:
+            return json.dumps({**self.chapter_list})
