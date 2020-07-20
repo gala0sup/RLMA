@@ -39,6 +39,46 @@ class about_dict(object):
     def items(self):
         return self.__dict__.items()
 
+class chapter_dict(object):
+    '''{chapter_number:{chapter_name:chapter_link}}'''
+    def __init__(self):
+        self.__dict__ = {}
+        
+    def __setitem__(self,key,value):
+        if type(value) == dict:
+            if len(value) == 1:
+                if key not in self.__dict__.keys():
+                
+                            if len(value[next(iter(value.keys()))])>0:
+                                self.__dict__[key] = value
+                            else:
+                                raise ValueError('link cannot be empty')
+
+                else:
+                    
+                    if len(value[next(iter(value.keys()))])>0:
+                        for k in value.keys():
+                            self.__dict__[key][k] = ''.join(value[k])
+                    else:
+                        raise ValueError('link cannot be empty')
+            else:
+                raise ValueError(('\ncannot assign multiple keys to a single key '+
+                                    f'({{{key}:{value}}}'+
+                                    f'\ncorrect format {{chapter_number:{{chapter_name:chapter_link}}}}'))
+        else:
+            raise ValueError(f"expected dict got {type(value).__name__} \n use dict['key'] = {{'key':'value'}}")
+            
+    def __getitem__(self,key):
+        if key not in self.__dict__.keys():
+            raise KeyError(f'{key} not defined')
+        return self.__dict__[key]
+    
+    def keys(self):
+        return self.__dict__.keys()
+    
+    def items(self):
+        return self.__dict__.items()
+
 class Base():
 
     def __init__(self,link=None):
@@ -54,10 +94,8 @@ class Base():
         self.EMPTY = None
         self.link = link
         self.about = about_dict()
-        self.chapter_list = {}
+        self.chapter_list = chapter_dict()
         '''{chapter_number:{chapter_name:chapter_link}}'''
-        
-
         self.headers = {'User-Agent': 'RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
     def _get_webpage(self):
         pass
