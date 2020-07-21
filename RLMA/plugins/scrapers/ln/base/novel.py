@@ -99,13 +99,13 @@ class Base():
         self.prased_webpage = None
         self.EMPTY = None
         self.link = link
+        self.chapter_link = None
         self.about = about_dict()
         self.chapter_list = chapter_dict()
         '''{chapter_number:{chapter_name:chapter_link}}'''
         self.headers = {'User-Agent': 'RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
         self._wait = wait
     def _get_webpage(self):
-        logger.debug(f'{self._wait}')
         if not self.initialized:
             logger.error("class not Initialised")
             raise NotInitializedError("class not Initialised Try calling get_info('link')")
@@ -153,6 +153,16 @@ class Base():
             logger.error("unable to retrive info of (%s)",self.link)
             raise
 
+    def _get_chapter(self):
+        tmp_link = self.link
+        try:
+            self.link = self.chapter_link
+            self._get_webpage()
+        except Exception as error:
+            self.link = tmp_link
+            logger.error(error)
+            raise
+            
     def info(self,full=False):
         if not self.initialized:
             raise NotInitializedError()
@@ -167,3 +177,38 @@ class Base():
             raise NotInitializedError("Chapters() called before calling get_info('link')")
         else:
             return json.dumps({**self.chapter_list})
+
+    def chapter(self,chapter_number=None,chapter_name=None,chapter_link=None):
+        if not self.initialized:
+            raise NotInitializedError("Called chapter() before calling get_info()")
+        try:
+            if chapter_number == None and chapter_name == None and chapter_link == None :
+                raise ValueError('At least one of (chapter_number or chapter_name or chapter_link) must be provided')
+            else:
+                if chapter_number != None:
+                    if chapter_number in self.chapter_list.keys():     
+                        self.chapter_link = self.chapter_list[chapter_number][next(iter(self.chapter_list[chapter_number]))]
+                    else:
+                        raise KeyError(f"{chapter_number} does not exists")
+                elif chapter_name != None:
+                    found = False
+                    for k,v in self.chapter_list.items():
+                        if chapter_name == next(iter(v.keys())):
+                                self.chapter_link = self.chapter_list[k][chapter_name]
+                                found=True
+                    if not found:
+                        raise KeyError(f"No chapter by the name {chapter_name} in {self.about['Name']}")
+                else:
+                    found = False
+                    for k,v in self.chapter_list.items():
+                        if chapter_link == v[next(iter(v.keys()))]:
+                                self.chapter_link = self.chapter_list[k][next(iter(v.keys()))]
+                                found=True
+                    if not found:
+                        raise KeyError(f"No chapter by the name {chapter_name} in {self.about['Name']}")
+            self._get_chapter()
+        except ValueError as error:
+            logger.error(error)
+        except KeyError as error:
+            logger.error(error)
+
