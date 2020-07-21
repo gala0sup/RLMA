@@ -158,6 +158,7 @@ class Base():
         try:
             self.link = self.chapter_link
             self._get_webpage()
+            self.link = tmp_link
         except Exception as error:
             self.link = tmp_link
             logger.error(error)
