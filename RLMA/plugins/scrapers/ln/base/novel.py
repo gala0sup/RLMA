@@ -1,7 +1,13 @@
 '''Base class for light novel scrapers'''
 
+from math import ceil
 import json
 import logging
+
+from bs4 import BeautifulSoup
+from kivy.network.urlrequest import UrlRequest
+
+logger = logging.getLogger('RLMA')
 
 class NotInitializedError(Exception):
     '''when info is called before get_info'''
@@ -81,7 +87,7 @@ class chapter_dict(object):
 
 class Base():
 
-    def __init__(self,link=None):
+    def __init__(self,link=None,wait=False):
         
         if link:
             self.initialized = True
@@ -97,28 +103,54 @@ class Base():
         self.chapter_list = chapter_dict()
         '''{chapter_number:{chapter_name:chapter_link}}'''
         self.headers = {'User-Agent': 'RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36'}
-    def _get_webpage(self,log=True):
-        pass
+        self._wait = wait
+    def _get_webpage(self):
+        logger.debug(f'{self._wait}')
+        if not self.initialized:
+            logger.error("class not Initialised")
+            raise NotInitializedError("class not Initialised Try calling get_info('link')")
+        else:
+            try:
+                logger.info("getting webpage (%s)",self.link)
+                self.webpage = UrlRequest(self.link,on_success=self._parse_webpage,req_headers=self.headers)
+                if self._wait:
+                    self.webpage.wait()
+            except Exception as error:
+                logger.error(error)
+                logger.warning("There was some Problem in getting the webpage (%s)",self.link)
+            finally:
+                if self._wait:
+                    logger.debug("Status Code Returned by %s is %s",self.link,self.webpage.resp_status)
 
-    def _prase_webpage(self,log=True):
-        pass
+    def _parse_webpage(self,req,result):
+        if not self.initialized:
+            logger.error("class not Initialised")
+            raise NotInitializedError("class not Initialised Try calling get_info('link')")
+        else:
+            try:
+                logger.info("prasing webpage (%s)",self.link)
+                self.prased_webpage = BeautifulSoup(result,'lxml')
+                logger.debug("prased webpage")
+            except Exception as error:
+                logger.error(error)
+                logger.error("unable to prase webpage")
+                raise
 
     def _set_info(self):
-        logging.debug("settings up vars")
+        logger.debug("settings up vars")
         pass
 
     def get_info(self,link):
-        logging.info("getting info of (%s)",link)
+        logger.info("getting info of (%s)",link)
         self.link = link
         self.initialized =True
         try:
             self._get_webpage()
-            self._prase_webpage()
             self._set_info()
 
         except Exception as error:
-            logging.error(error)
-            logging.error("unable to retrive info of (%s)",self.link)
+            logger.error(error)
+            logger.error("unable to retrive info of (%s)",self.link)
             raise
 
     def info(self,full=False):
@@ -129,6 +161,7 @@ class Base():
                 return json.dumps({'link':self.link,**self.about,**self.chapter_list})
             else:
                 return json.dumps({'link':self.link,**self.about})
+
     def chapters(self):
         if not self.initialized:
             raise NotInitializedError("Chapters() called before calling get_info('link')")
