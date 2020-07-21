@@ -111,7 +111,7 @@ class Base():
             raise NotInitializedError("class not Initialised Try calling get_info('link')")
         else:
             try:
-                logger.info("getting webpage (%s)",self.link)
+                logger.debug("getting webpage (%s)",self.link)
                 self.webpage = UrlRequest(self.link,on_success=self._parse_webpage,req_headers=self.headers)
                 if self._wait:
                     self.webpage.wait()
@@ -128,7 +128,7 @@ class Base():
             raise NotInitializedError("class not Initialised Try calling get_info('link')")
         else:
             try:
-                logger.info("prasing webpage (%s)",self.link)
+                logger.debug("prasing webpage (%s)",self.link)
                 self.prased_webpage = BeautifulSoup(result,'lxml')
                 logger.debug("prased webpage")
             except Exception as error:
@@ -156,6 +156,7 @@ class Base():
     def _get_chapter(self):
         tmp_link = self.link
         try:
+            logger.info(f"getting chapter {self.chapter_link}")
             self.link = self.chapter_link
             self._get_webpage()
             self.link = tmp_link
@@ -207,7 +208,7 @@ class Base():
                                 found=True
                     if not found:
                         raise KeyError(f"No chapter by the name {chapter_name} in {self.about['Name']}")
-            self._get_chapter()
+            return json.dumps(self._get_chapter())
         except ValueError as error:
             logger.error(error)
         except KeyError as error:
