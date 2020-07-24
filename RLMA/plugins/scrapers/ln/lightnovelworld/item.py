@@ -3,7 +3,7 @@ from math import ceil
 from pathlib import Path
 
 
-from plugins.scrapers.ln.base.item import Base
+from plugins.scrapers.base.item import Base
 
 
 WEBSITE = Path(__file__).parent.parts[-1]
@@ -14,6 +14,7 @@ logger = logging.getLogger("RLMA")
 class Scraper(Base):
     def __init__(self, link=None, wait=False):
         super().__init__(link=link, wait=wait)
+        self.type_ = Path(__file__).parent.parts[-2]
 
     def _set_info(self):
 
