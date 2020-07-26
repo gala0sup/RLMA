@@ -132,13 +132,13 @@ class chapter_dict(object):
 
 
 class Base:
-    def __init__(self, link=None, wait=False):
+    def __init__(self, link=None, wait=False, _log_level=0):
 
         if link:
             self.initialized = True
         else:
             self.initialized = False
-
+        self._log_level = _log_level
         self.type_ = None
         self.webpage = None
         self.prased_webpage = None
@@ -148,9 +148,7 @@ class Base:
         self.about = about_dict()
         self.chapter_list = chapter_dict()
         """{chapter_number:{chapter_name:chapter_link}}"""
-        self.headers = {
-            "User-Agent": "RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/50.0.2661.102 Safari/537.36"
-        }
+
         self._wait = wait
 
     def _get_webpage(self):
@@ -162,9 +160,7 @@ class Base:
         else:
             try:
                 logger.debug("getting webpage (%s)", self.link)
-                self.webpage = UrlRequest(
-                    self.link, on_success=self._parse_webpage, req_headers=self.headers
-                )
+                self.webpage = UrlRequest(self.link, on_success=self._parse_webpage)
                 if self._wait:
                     self.webpage.wait()
             except Exception as error:
