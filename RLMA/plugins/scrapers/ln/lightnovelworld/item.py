@@ -12,8 +12,8 @@ logger = logging.getLogger("RLMA")
 
 
 class Scraper(Base):
-    def __init__(self, link=None, wait=False):
-        super().__init__(link=link, wait=wait)
+    def __init__(self, link=None, wait=False, _log_level=1):
+        super().__init__(link=link, wait=wait, _log_level=_log_level)
         self.type_ = Path(__file__).parent.parts[-2]
 
     def _set_info(self):
@@ -55,8 +55,13 @@ class Scraper(Base):
                 .find_all("p")
             )
             for p in div:
-                if len(p.string) > 1:
-                    self.about["Summary"] = p.string.strip()
+                summary = ""
+                summary += p.get_text()
+                if self._log_level < 1:
+                    logger.debug(f"{summary}")
+            if len(summary) > 1:
+                self.about["Summary"] = summary
+
             cur = self.about["Chapters"]
 
             li = (
@@ -96,6 +101,7 @@ class Scraper(Base):
             # logging.debug("%s ------- %s",len(a),a)
         except Exception as error:
             logger.error(error)
+            raise
 
     def _get_chapter(self):
         super()._get_chapter()
