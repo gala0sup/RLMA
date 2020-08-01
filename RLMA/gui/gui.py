@@ -68,7 +68,7 @@ BoxLayout:
 """
 
 
-class MainApp(MDFloatLayout, MDApp):
+class RLMA(MDFloatLayout, MDApp):
     def build(self):
         self.title = "RLMA"
         self.theme_cls.primary_palette = "Gray"
