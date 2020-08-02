@@ -1,3 +1,4 @@
+from kivy.clock import Clock
 from kivymd.uix.refreshlayout import MDScrollViewRefreshLayout
 from core.library import LibraryCategory
 from core.library import LibraryItem
@@ -115,4 +116,16 @@ class RLMA(MDFloatLayout, MDApp):
             self.library.categoriesDialog.open()
 
     def refresh_callback(self, *args):
-        pass
+        def refresh_callback(interval):
+            self.screen.ids.tabs_.clear_widgets()
+
+            if self.x == 0:
+                self.x, self.y = 15, 30
+            else:
+                self.x, self.y = 0, 15
+
+            self.set_RLMA()
+
+            self.screen.ids.refresh_layout.refresh_done()
+
+        Clock.schedule_once(refresh_callback, 1)
