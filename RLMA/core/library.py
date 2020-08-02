@@ -13,7 +13,6 @@ from kivymd.uix.boxlayout import BoxLayout
 from kivymd.uix.list import OneLineAvatarIconListItem
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRectangleFlatButton
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.textfield import MDTextField
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
 from kivy.clock import Clock
@@ -29,6 +28,8 @@ Config = ConfigParser.get_configparser("RLMA")
 
 
 class LibraryItem(SmartTileWithLabel):
+    """class for LibraryItem """
+
     def __init__(self, *args, **kwargs):
         try:
             self.text_ = kwargs["label_text"]
@@ -113,6 +114,7 @@ class Library:
         self.tabs = {}
         self.categoriesDialog = None
         self.added_cat = False
+        self.active_check = None
         for path in self.LibraryPaths:
             logger.debug(path)
             json_file = pathlib.Path(path) / "Library.json"
@@ -281,8 +283,26 @@ class Library:
         )
         self.categoriesDialog.set_normal_height()
 
-    def del_category(self, *args):
-        pass
+    def del_category(self, instance):
+        logger.debug("-> called")
+        app = App.get_running_app()
+        Clock.schedule_once(self.categoriesDialog.dismiss)
+        if self.active_check != None:
+            logger.debug(f"deleting {self.active_check.text}")
+            self.categories.pop(self.categories.index(self.active_check.text))
+            self._save_library()
+            self._make_categoriesDialog()
+            self.active_check = None
+
+        Clock.schedule_once(self.categoriesDialog.open, 1)
+        app.refresh_callback(1.0051528999999997)
+
+    def LibraryCategoryDialogItemCallback(self, instance):
+        logger.debug("-> called")
+        if self.active_check == instance:
+            self.active_check = None
+        else:
+            self.active_check = instance
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
