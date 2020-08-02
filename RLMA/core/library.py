@@ -16,6 +16,7 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.textfield import MDTextField
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
+from kivy.clock import Clock
 
 from .scraper import Scraper
 from utils import RLMAPATH
@@ -111,6 +112,7 @@ class Library:
         self.categories = []
         self.tabs = {}
         self.categoriesDialog = None
+        self.added_cat = False
         for path in self.LibraryPaths:
             logger.debug(path)
             json_file = pathlib.Path(path) / "Library.json"
@@ -124,7 +126,7 @@ class Library:
                 if not "Default" in self.categories:
                     self.categories.append("Default")
 
-    def do_library(self):
+    def do_library(self, refresh=False):
         logger.info(f"Building Library")
         if self.json:
             logger.debug("setting from JSON file")
@@ -161,6 +163,7 @@ class Library:
         self._save_library()
 
     def add_category(self, *args, **kwargs):
+        logger.debug("-> called")
         app = App.get_running_app()
         dialog = MDDialog(
             title="Add New Category",
@@ -208,6 +211,7 @@ class Library:
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
                 obj.dismiss()
+        self.added_cat = False
 
     def _ok_categoriesDialog(self, instance):
         for obj in self.categoriesDialog.items:
@@ -216,6 +220,7 @@ class Library:
 
     def _ok_add_category_dialog(self, instance):
         app = App.get_running_app()
+        Clock.schedule_once(self.categoriesDialog.dismiss)
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
                 text = obj.content_cls.ids.textfield.text
@@ -223,58 +228,61 @@ class Library:
                     pass
                 else:
                     logger.debug(f"adding {text}")
-                    self.categories.append(text)
+                    self.categories.append(str(text))
                     self._make_categoriesDialog()
+                    self.added_cat = True
 
-        app.refresh_callback(1.0051528999999997)
         self._close_dialog(instance=instance)
+        Clock.schedule_once(self.categoriesDialog.open)
         self._save_library()
+        app.refresh_callback(1.0051528999999997)
 
     def open_categoriesDialog(self):
         self.categoriesDialog.open()
 
     def _make_categoriesDialog(self):
+        logger.debug("-> called")
         app = App.get_running_app()
-        if not self.categoriesDialog:
-            self.categoriesDialog = MDDialog(
-                title="Choose Category",
-                type="confirmation",
-                items=[
-                    LibraryCategoryDialogItem(text=category)
-                    for category in self.categories
-                ],
-                buttons=[
-                    MDRectangleFlatButton(
-                        text="CANCEL",
-                        text_color=app.theme_cls.primary_color,
-                        md_bg_color=app.theme_cls.accent_color,
-                        on_release=self._close_dialog,
-                    ),
-                    MDRectangleFlatButton(
-                        text="Add Category",
-                        text_color=app.theme_cls.primary_dark,
-                        md_bg_color=app.theme_cls.primary_light,
-                        on_release=self.add_category,
-                    ),
-                    MDRectangleFlatButton(
-                        text="Delete Selected",
-                        text_color=app.theme_cls.primary_dark,
-                        md_bg_color=app.theme_cls.primary_light,
-                        # on_release=self.add_category,
-                    ),
-                    MDRaisedButton(
-                        text="OK",
-                        text_color=app.theme_cls.accent_color,
-                        md_bg_color=[
-                            i - j
-                            for i, j in zip(app.theme_cls.primary_light, [0, 0, 0, 0.5])
-                        ],
-                        on_release=self._ok_categoriesDialog,
-                    ),
-                ],
-            )
-
+        self.categoriesDialog = MDDialog(
+            title="Choose Category",
+            type="confirmation",
+            items=[
+                LibraryCategoryDialogItem(text=category) for category in self.categories
+            ],
+            buttons=[
+                MDRectangleFlatButton(
+                    text="CANCEL",
+                    text_color=app.theme_cls.primary_color,
+                    md_bg_color=app.theme_cls.accent_color,
+                    on_release=self._close_dialog,
+                ),
+                MDRectangleFlatButton(
+                    text="Add Category",
+                    text_color=app.theme_cls.primary_dark,
+                    md_bg_color=app.theme_cls.primary_light,
+                    on_release=self.add_category,
+                ),
+                MDRectangleFlatButton(
+                    text="Delete Selected",
+                    text_color=app.theme_cls.primary_dark,
+                    md_bg_color=app.theme_cls.primary_light,
+                    on_release=self.del_category,
+                ),
+                MDRaisedButton(
+                    text="OK",
+                    text_color=app.theme_cls.accent_color,
+                    md_bg_color=[
+                        i - j
+                        for i, j in zip(app.theme_cls.primary_light, [0, 0, 0, 0.5])
+                    ],
+                    on_release=self._ok_categoriesDialog,
+                ),
+            ],
+        )
         self.categoriesDialog.set_normal_height()
+
+    def del_category(self, *args):
+        pass
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
