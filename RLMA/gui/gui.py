@@ -7,6 +7,8 @@ from kivy.metrics import dp
 from kivymd.uix.floatlayout import MDFloatLayout
 from kivymd.app import MDApp
 from kivymd.uix.tab import MDTabsBase
+from kivymd.uix.tab import MDTabsBar
+from kivymd.uix.tab import MDTabsMain
 from kivymd.uix.label import MDLabel
 from kivymd.uix.gridlayout import MDGridLayout
 from kivy.lang import Builder
@@ -96,7 +98,16 @@ class RLMA(MDFloatLayout, MDApp):
         async def set_RLMA():
             self.library.do_library()
             await asynckivy.sleep(0)
-            logger.debug(self.root.ids)
+            for tab_lable, tab_instance in self.library.tabs.items():
+                logger.debug(f"adding {tab_lable} <======> {tab_instance}")
+                self.root.ids.tabs_.add_widget(tab_instance)
+
+        asynckivy.start(set_RLMA())
+
+    def refresh_RLMA(self):
+        async def set_RLMA():
+            self.library.do_library(refresh=True)
+            await asynckivy.sleep(0)
             for tab_lable, tab_instance in self.library.tabs.items():
                 logger.debug(f"adding {tab_lable} <======> {tab_instance}")
                 self.root.ids.tabs_.add_widget(tab_instance)
@@ -123,21 +134,24 @@ class RLMA(MDFloatLayout, MDApp):
             self.library.categoriesDialog.open()
 
     def refresh_callback(self, *args):
-        logger.debug("-> called")
+
+        logger.debug(f"-> called")
 
         def refresh_callback(interval):
-            for obj in self.root.ids.tabs_.children:
-                logger.debug(obj)
-                # logger.debug(obj.tab_label)
+            for obj in self.root.ids.tabs_.ids.carousel.slides:
+                obj.clear_widgets()
 
-                # self.root.ids.tabs_.remove_widget(obj)
+            for obj in self.root.ids.tabs_.ids.tab_bar.walk():
+                if isinstance(obj, MDGridLayout):
+                    # logger.debug(i)
+                    obj.clear_widgets()
 
             if self.x == 0:
                 self.x, self.y = 15, 30
             else:
                 self.x, self.y = 0, 15
 
-            self.set_RLMA()
+            self.refresh_RLMA()
 
             self.root.ids.refresh_layout.refresh_done()
 
