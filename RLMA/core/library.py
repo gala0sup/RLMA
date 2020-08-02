@@ -135,6 +135,9 @@ class Library:
                         value.append("Default")
                     logger.debug(f"setting {key}")
                     self.categories = value
+        self.tabs.clear()
+        self.LibraryItems.clear()
+
         self.tabs = {
             tab_label: LibraryCategory(text=tab_label) for tab_label in self.categories
         }
@@ -142,6 +145,7 @@ class Library:
             text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
         )
         img_path = str(RLMAPATH / "300.png")
+
         for i in range(50):
             item = LibraryItem(label_text=str(i), img_source=img_path)
             item.item_add_category(choice(self.categories))
@@ -211,7 +215,7 @@ class Library:
         self._close_dialog(instance=self.categoriesDialog)
 
     def _ok_add_category_dialog(self, instance):
-
+        app = App.get_running_app()
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
                 text = obj.content_cls.ids.textfield.text
@@ -222,6 +226,7 @@ class Library:
                     self.categories.append(text)
                     self._make_categoriesDialog()
 
+        app.refresh_callback(1.0051528999999997)
         self._close_dialog(instance=instance)
         self._save_library()
 

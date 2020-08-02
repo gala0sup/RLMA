@@ -10,6 +10,7 @@ from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.label import MDLabel
 from kivymd.uix.gridlayout import MDGridLayout
 from kivy.lang import Builder
+from kivymd.utils import asynckivy
 
 import logging
 
@@ -89,12 +90,18 @@ class RLMA(MDFloatLayout, MDApp):
         #                                    )
 
     def on_start(self):
+        self.set_RLMA()
 
-        self.library.do_library()
-        logger.debug(self.root.ids)
-        for tab_lable, tab_instance in self.library.tabs.items():
-            logger.debug(f"adding {tab_lable} <======> {tab_instance}")
-            self.root.ids.tabs_.add_widget(tab_instance)
+    def set_RLMA(self):
+        async def set_RLMA():
+            self.library.do_library()
+            await asynckivy.sleep(0)
+            logger.debug(self.root.ids)
+            for tab_lable, tab_instance in self.library.tabs.items():
+                logger.debug(f"adding {tab_lable} <======> {tab_instance}")
+                self.root.ids.tabs_.add_widget(tab_instance)
+
+        asynckivy.start(set_RLMA())
 
     def on_tab_switch(self, instance_tabs, instance_tab, instance_tab_label, tab_text):
         """Called when switching tabs.
@@ -116,8 +123,14 @@ class RLMA(MDFloatLayout, MDApp):
             self.library.categoriesDialog.open()
 
     def refresh_callback(self, *args):
+        logger.debug("-> called")
+
         def refresh_callback(interval):
-            self.root.ids.tabs_.clear_widgets()
+            for obj in self.root.ids.tabs_.children:
+                logger.debug(obj)
+                # logger.debug(obj.tab_label)
+
+                # self.root.ids.tabs_.remove_widget(obj)
 
             if self.x == 0:
                 self.x, self.y = 15, 30
