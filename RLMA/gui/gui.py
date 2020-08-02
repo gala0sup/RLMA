@@ -30,7 +30,7 @@ BoxLayout:
     MDScrollViewRefreshLayout:
         id : refresh_layout
         refresh_callback: app.refresh_callback
-        root_layout : app.root
+        root_layout : app
         MDTabs:
             id: tabs_
             lock_swiping : True
@@ -117,7 +117,7 @@ class RLMA(MDFloatLayout, MDApp):
 
     def refresh_callback(self, *args):
         def refresh_callback(interval):
-            self.screen.ids.tabs_.clear_widgets()
+            self.root.ids.tabs_.clear_widgets()
 
             if self.x == 0:
                 self.x, self.y = 15, 30
@@ -126,6 +126,6 @@ class RLMA(MDFloatLayout, MDApp):
 
             self.set_RLMA()
 
-            self.screen.ids.refresh_layout.refresh_done()
+            self.root.ids.refresh_layout.refresh_done()
 
         Clock.schedule_once(refresh_callback, 1)
