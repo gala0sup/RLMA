@@ -44,6 +44,7 @@ BoxLayout:
 
     CheckboxLeftWidget:
         id: check
+        on_active : app.library.LibraryCategoryDialogItemCallback(root)
         group: "check" 
 
 <DialogMDTextField>
