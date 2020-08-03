@@ -130,6 +130,7 @@ class Library:
 
     def do_library(self, refresh=False):
         logger.info(f"Building Library")
+        # from JSON
         if self.json:
             logger.debug("setting from JSON file")
             for key, value in self.json.items():
@@ -148,12 +149,6 @@ class Library:
         self.tabs["edit"] = LibraryCategory(
             text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
         )
-        img_path = str(RLMAPATH / "300.png")
-
-        for i in range(50):
-            item = LibraryItem(label_text=str(i), img_source=img_path)
-            item.item_add_category(choice(self.categories))
-            self.LibraryItems.append(item)
 
         for LibraryItem_ in self.LibraryItems:
             for category in LibraryItem_.categories:
