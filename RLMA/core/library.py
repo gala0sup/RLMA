@@ -24,7 +24,6 @@ from utils import RLMAPATH
 # Config.set("kivy", "log_level", "debug")
 
 logger = logging.getLogger("RLMA")
-Config = ConfigParser.get_configparser("RLMA")
 
 
 class LibraryItem(SmartTileWithLabel):
@@ -103,6 +102,7 @@ class LibraryItem(SmartTileWithLabel):
 
 class Library:
     def __init__(self, *args, **kwargs):
+        Config = ConfigParser.get_configparser("RLMA")
 
         self.LibraryPaths = ast.literal_eval(
             Config.get("LocationPaths", "LibraryPaths")
@@ -161,6 +161,7 @@ class Library:
                     self.tabs[category].ids.LibraryCategoryLayout.add_widget(
                         LibraryItem_
                     )
+
         self._make_categoriesDialog()
         self._save_library()
 
@@ -216,9 +217,10 @@ class Library:
         self.added_cat = False
 
     def _ok_categoriesDialog(self, instance):
-        for obj in self.categoriesDialog.items:
-            logger.debug(obj.text)
-        self._close_dialog(instance=self.categoriesDialog)
+        logger.debug("-> called")
+        # for obj in self.categoriesDialog.items:
+        #     logger.debug(obj.text)
+        self.categoriesDialog.dismiss()
 
     def _ok_add_category_dialog(self, instance):
         app = App.get_running_app()
@@ -238,9 +240,6 @@ class Library:
         Clock.schedule_once(self.categoriesDialog.open)
         self._save_library()
         app.refresh_callback(1.0051528999999997)
-
-    def open_categoriesDialog(self):
-        self.categoriesDialog.open()
 
     def _make_categoriesDialog(self):
         logger.debug("-> called")
@@ -283,6 +282,9 @@ class Library:
         )
         self.categoriesDialog.set_normal_height()
 
+    def open_categoriesDialog(self):
+        self.categoriesDialog.open()
+
     def del_category(self, instance):
         logger.debug("-> called")
         app = App.get_running_app()
@@ -294,7 +296,7 @@ class Library:
             self._make_categoriesDialog()
             self.active_check = None
 
-        Clock.schedule_once(self.categoriesDialog.open, 1)
+        Clock.schedule_once(self.categoriesDialog.open)
         app.refresh_callback(1.0051528999999997)
 
     def LibraryCategoryDialogItemCallback(self, instance):
