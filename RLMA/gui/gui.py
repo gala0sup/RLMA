@@ -20,15 +20,15 @@ logger = logging.getLogger("RLMA")
 
 
 root_kv = """
-BoxLayout:
-    orientation: "vertical"
+Screen:
+    BoxLayout:
+        orientation: "vertical"
 
-    MDToolbar:
-        title: app.title
-        elevation: 10
-        md_bg_color: app.theme_cls.primary_color
+        MDToolbar:
+            title: app.title
+            elevation: 10
+            md_bg_color: app.theme_cls.primary_color
 
-    MDFloatLayout:
         MDScrollViewRefreshLayout:
             id : refresh_layout
             refresh_callback: app.refresh_callback
@@ -39,9 +39,9 @@ BoxLayout:
                 on_tab_switch: app.on_tab_switch(*args)
 
 
-        MDFloatingActionButtonSpeedDial:
-            data : app.data
-            rotation_root_button: True
+    MDFloatingActionButtonSpeedDial:
+        data : app.data
+        rotation_root_button: True
 
 
 
