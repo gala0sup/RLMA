@@ -165,29 +165,6 @@ class Library:
         self._make_categoriesDialog()
         self._save_library()
 
-    def add_category(self, *args, **kwargs):
-        logger.debug("-> called")
-        app = App.get_running_app()
-        dialog = MDDialog(
-            title="Add New Category",
-            content_cls=DialogMDTextField(),
-            type="custom",
-            buttons=[
-                MDFlatButton(
-                    text="CANCEL",
-                    text_color=app.theme_cls.primary_color,
-                    on_release=self._close_dialog,
-                ),
-                MDFlatButton(
-                    text="OK",
-                    text_color=app.theme_cls.primary_color,
-                    on_release=self._ok_add_category_dialog,
-                ),
-            ],
-        )
-        dialog.set_normal_height()
-        dialog.open()
-
     def add_item(self, link, type_):
         for item in self.LibraryItems:
             if link == item.Scraper.link:
@@ -209,37 +186,7 @@ class Library:
     def to_json(self):
         return json.dumps({"categories": self.categories})
 
-    def _close_dialog(self, instance):
-        # logger.debug(" -> Called")
-        for obj in instance.walk_reverse():
-            if isinstance(obj, MDDialog):
-                obj.dismiss()
-        self.added_cat = False
-
-    def _ok_categoriesDialog(self, instance):
-        logger.debug("-> called")
-        # for obj in self.categoriesDialog.items:
-        #     logger.debug(obj.text)
-        self.categoriesDialog.dismiss()
-
-    def _ok_add_category_dialog(self, instance):
-        app = App.get_running_app()
-        Clock.schedule_once(self.categoriesDialog.dismiss)
-        for obj in instance.walk_reverse():
-            if isinstance(obj, MDDialog):
-                text = obj.content_cls.ids.textfield.text
-                if text in self.categories:
-                    pass
-                else:
-                    logger.debug(f"adding {text}")
-                    self.categories.append(str(text))
-                    self._make_categoriesDialog()
-                    self.added_cat = True
-
-        self._close_dialog(instance=instance)
-        Clock.schedule_once(self.categoriesDialog.open)
-        self._save_library()
-        app.refresh_callback(1.0051528999999997)
+    # Dialogs GUI functions from here
 
     def _make_categoriesDialog(self):
         logger.debug("-> called")
@@ -282,8 +229,44 @@ class Library:
         )
         self.categoriesDialog.set_normal_height()
 
+    def _ok_categoriesDialog(self, instance):
+        logger.debug("-> called")
+        # for obj in self.categoriesDialog.items:
+        #     logger.debug(obj.text)
+        self.categoriesDialog.dismiss()
+
+    def LibraryCategoryDialogItemCallback(self, instance):
+        logger.debug("-> called")
+        if self.active_check == instance:
+            self.active_check = None
+        else:
+            self.active_check = instance
+
     def open_categoriesDialog(self):
         self.categoriesDialog.open()
+
+    def add_category(self, *args, **kwargs):
+        logger.debug("-> called")
+        app = App.get_running_app()
+        dialog = MDDialog(
+            title="Add New Category",
+            content_cls=DialogMDTextField(),
+            type="custom",
+            buttons=[
+                MDFlatButton(
+                    text="CANCEL",
+                    text_color=app.theme_cls.primary_color,
+                    on_release=self._close_dialog,
+                ),
+                MDFlatButton(
+                    text="OK",
+                    text_color=app.theme_cls.primary_color,
+                    on_release=self._ok_add_category_dialog,
+                ),
+            ],
+        )
+        dialog.set_normal_height()
+        dialog.open()
 
     def del_category(self, instance):
         logger.debug("-> called")
@@ -299,12 +282,31 @@ class Library:
         Clock.schedule_once(self.categoriesDialog.open)
         app.refresh_callback(1.0051528999999997)
 
-    def LibraryCategoryDialogItemCallback(self, instance):
-        logger.debug("-> called")
-        if self.active_check == instance:
-            self.active_check = None
-        else:
-            self.active_check = instance
+    def _ok_add_category_dialog(self, instance):
+        app = App.get_running_app()
+        Clock.schedule_once(self.categoriesDialog.dismiss)
+        for obj in instance.walk_reverse():
+            if isinstance(obj, MDDialog):
+                text = obj.content_cls.ids.textfield.text
+                if text in self.categories:
+                    pass
+                else:
+                    logger.debug(f"adding {text}")
+                    self.categories.append(str(text))
+                    self._make_categoriesDialog()
+                    self.added_cat = True
+
+        self._close_dialog(instance=instance)
+        Clock.schedule_once(self.categoriesDialog.open)
+        self._save_library()
+        app.refresh_callback(1.0051528999999997)
+
+    def _close_dialog(self, instance):
+        # logger.debug(" -> Called")
+        for obj in instance.walk_reverse():
+            if isinstance(obj, MDDialog):
+                obj.dismiss()
+        self.added_cat = False
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
