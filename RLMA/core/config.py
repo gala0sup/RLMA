@@ -2,8 +2,10 @@ from os import environ
 import pathlib
 import logging
 
+
 from kivy.utils import platform
 from kivy.config import ConfigParser
+from kivy.app import App
 
 from kivymd.toast import toast
 from kivymd.uix.snackbar import Snackbar
@@ -16,20 +18,19 @@ class RlmaConfig(object):
     Config = ConfigParser(name="RLMA")
 
     def __init__(self):
+        app = App.get_running_app()
         log.info(f"setting up config for RLMA")
         log.debug(f"Platform is {platform}")
-        if platform == "win":
-            self.base_path = pathlib.Path(environ["LOCALAPPDATA"]) / "RLMA"
-            self.settings = {
-                "LocationPaths": {
-                    "BasePath": str(self.base_path),
-                    "SettingsDir": str(self.base_path / ".settings"),
-                    "LibraryPaths": [str(self.base_path / "Library")],
-                },
-                "Settings": {
-                    "File": str(self.base_path / ".settings" / "settings.ini")
-                },
-            }
+        self.user_data_dir = app.user_data_dir
+        self.base_path = pathlib.Path(self.user_data_dir)
+        self.settings = {
+            "LocationPaths": {
+                "BasePath": str(self.base_path),
+                "SettingsDir": str(self.base_path / ".settings"),
+                "LibraryPaths": [str(self.base_path / "Library")],
+            },
+            "Settings": {"File": str(self.base_path / ".settings" / "settings.ini")},
+        }
 
     def _setup(self):
         log.info(f"Setting up base dirs and files")
