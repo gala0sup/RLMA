@@ -20,24 +20,30 @@ logger = logging.getLogger("RLMA")
 
 
 root_kv = """
-
 BoxLayout:
     orientation: "vertical"
 
     MDToolbar:
         title: app.title
         elevation: 10
-        left_action_items: [["menu", lambda x: x]]
         md_bg_color: app.theme_cls.primary_color
 
-    MDScrollViewRefreshLayout:
-        id : refresh_layout
-        refresh_callback: app.refresh_callback
-        root_layout : app
-        MDTabs:
-            id: tabs_
-            lock_swiping : True
-            on_tab_switch: app.on_tab_switch(*args)
+    MDFloatLayout:
+        MDScrollViewRefreshLayout:
+            id : refresh_layout
+            refresh_callback: app.refresh_callback
+            root_layout : app
+            MDTabs:
+                id: tabs_
+                lock_swiping : True
+                on_tab_switch: app.on_tab_switch(*args)
+
+
+        MDFloatingActionButtonSpeedDial:
+            data : app.data
+            rotation_root_button: True
+
+
 
 <LibraryCategoryDialogItem>
     on_release: root.set_icon(check)
@@ -74,6 +80,8 @@ BoxLayout:
 
 
 class RLMA(MDFloatLayout, MDApp):
+    data = {"update": "Update Category", "all-inclusive": "Update Library"}
+
     def build(self):
         self.title = "RLMA"
         self.theme_cls.primary_palette = "Gray"
@@ -84,7 +92,6 @@ class RLMA(MDFloatLayout, MDApp):
         # self.refresh_layout.refresh_callback = self.refresh_callback
         # self.refresh_layout.root_layout = self.root
 
-        self.library = Library()
         # self.root.add_widget(self.refresh_layout)
 
         # self.library_layout = MDGridLayout(adaptive_height=True,
@@ -93,6 +100,12 @@ class RLMA(MDFloatLayout, MDApp):
         #                                    )
 
     def on_start(self):
+        from core.config import RlmaConfig
+
+        Config = RlmaConfig()
+        Config.run()
+        RlmaConfig.Config.write()
+        self.library = Library()
         self.set_RLMA()
 
     def set_RLMA(self):
