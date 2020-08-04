@@ -13,6 +13,7 @@ from kivymd.uix.label import MDLabel
 from kivymd.uix.gridlayout import MDGridLayout
 from kivy.lang import Builder
 from kivymd.utils import asynckivy
+from kivy.factory import Factory
 
 import logging
 
@@ -40,6 +41,7 @@ Screen:
 
 
     MDFloatingActionButtonSpeedDial:
+        id : FloatingDial
         data : app.data
         callback : app.FloatingActionButton_callback
         rotation_root_button: True
@@ -57,11 +59,24 @@ Screen:
 <DialogMDTextField>
     MDTextField:
         id : textfield
-        hint_text: "Enter New Category"
+        hint_text: root.hint_text
         mode : "rectangle"
         color_mode : "custom"
         line_color_focus: app.theme_cls.primary_dark
 
+<AddItemDialog>
+    orientation: "vertical"
+    MDTextField:
+        id : textfield
+        hint_text: root.hint_text
+        mode : "rectangle"
+        color_mode : "custom"
+        line_color_focus: app.theme_cls.primary_dark
+
+    MDDropDownItem:
+        id: drop_item
+        text: 'LN'
+        on_release: app.library.typedialog.open()
 
 <LibraryCategory>:
     id : tab_
@@ -92,17 +107,6 @@ class RLMA(MDFloatLayout, MDApp):
         self.theme_cls.primary_palette = "Gray"
         self.theme_cls.accent_palette = "Red"
         self.root = Builder.load_string(root_kv)
-        # self.refresh_layout = MDScrollViewRefreshLayout()
-
-        # self.refresh_layout.refresh_callback = self.refresh_callback
-        # self.refresh_layout.root_layout = self.root
-
-        # self.root.add_widget(self.refresh_layout)
-
-        # self.library_layout = MDGridLayout(adaptive_height=True,
-        #                                    padding=(dp(4), dp(4)),
-        #                                    spacing=dp(4)
-        #                                    )
 
     def on_start(self):
         from core.config import RlmaConfig
@@ -177,14 +181,23 @@ class RLMA(MDFloatLayout, MDApp):
         Clock.schedule_once(refresh_callback, 1)
 
     def FloatingActionButton_callback(self, instance):
-        logger.debug(f"{instance.icon}")
         icon = instance.icon
         if icon == "plus":
             """Call Add_item Dialog in library"""
-            pass
+            self.library.add_item_dialog()
+
         elif icon == "all-inclusive":
             """update whole library"""
             pass
         elif icon == "update":
             """update current category"""
+            pass
+
+    def multi_callback(self, instance):
+        try:
+            for obj in instance.walk_reverse():
+                if obj == self.drop:
+                    self.root.ids.drop_item.set_item(instance.text)
+                    self.drop.dismiss()
+        except:
             pass

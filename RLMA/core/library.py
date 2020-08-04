@@ -16,6 +16,13 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
 from kivy.clock import Clock
+from kivymd.toast import toast
+from kivy.properties import StringProperty
+from kivymd.uix.menu import MDDropdownMenu
+from kivy.factory import Factory
+
+from validator_collection import checkers
+
 
 from .scraper import Scraper
 from utils import RLMAPATH
@@ -30,18 +37,18 @@ class LibraryItem(SmartTileWithLabel):
     """class for LibraryItem """
 
     def __init__(self, *args, **kwargs):
-        try:
-            self.text_ = kwargs["label_text"]
-            self.source_ = kwargs["img_source"]
-            kwargs.pop("label_text")
-            kwargs.pop("img_source")
-        except KeyError:
-            logger.info(
-                "Wrong kwargs for LibraryItem  correct LibraryItem(label_text='text',img_source='path')"
-            )
+        # try:
+        #     self.text_ = kwargs["label_text"]
+        #     self.source_ = kwargs["img_source"]
+        #     kwargs.pop("label_text")
+        #     kwargs.pop("img_source")
+        # except KeyError:
+        #     logger.info(
+        #         "Wrong kwargs for LibraryItem  correct LibraryItem(label_text='text',img_source='path')"
+        #     )
         super().__init__(**kwargs)
-        self.text = self.text_
-        self.source = self.source_
+        # self.text = self.text_
+        # self.source = self.source_
         self.size_hint = None, None
         self.height = 300
         self.width = 300
@@ -62,6 +69,7 @@ class LibraryItem(SmartTileWithLabel):
         logger.debug(f"getting {self.text}")
 
     def item_set(self, json_data=None, link=None, type_=None, wait=True):
+        logger.debug("-> called")
         self.json_data = json_data
         try:
             if self.json_data:
@@ -80,7 +88,10 @@ class LibraryItem(SmartTileWithLabel):
             raise
 
     def item_update(self):
+        logger.debug("-> called")
         self.Scraper.get_info()
+        self.text = self.Scraper.about["Name"]
+        self.source = self.Scraper.about["CoverImage"]
         self.init = True
 
     def item_get_info(self, full=True):
@@ -109,12 +120,16 @@ class Library:
         )
         logger.debug(self.LibraryPaths)
         self.json = None
+        self.ItemTypes = ["ln", "manga", "anime"]
         self.LibraryItems = []
         self.categories = []
         self.tabs = {}
         self.categoriesDialog = None
         self.added_cat = False
         self.active_check = None
+        self.typedialog = None
+        self.itemtype = None
+        self.itemurl = None
         for path in self.LibraryPaths:
             logger.debug(path)
             json_file = pathlib.Path(path) / "Library.json"
@@ -161,13 +176,16 @@ class Library:
         self._save_library()
 
     def add_item(self, link, type_):
+        logger.debug(f"-> called {link},{type_}")
         for item in self.LibraryItems:
             if link == item.Scraper.link:
                 logger.debug(f"Item with link {link} already in library")
                 return -1
-            else:
-                tmp_LibraryItem = LibraryItem()
-                tmp_LibraryItem.item_set(link=link, type_=type_)
+        tmp_LibraryItem = LibraryItem()
+        tmp_LibraryItem.item_set(link=link, type_=type_)
+        tmp_LibraryItem.item_add_category("Default")
+        tmp_LibraryItem.item_update()
+        self.LibraryItems.append(tmp_LibraryItem)
 
     def _save_library(self):
         for path in self.LibraryPaths:
@@ -245,17 +263,22 @@ class Library:
         app = App.get_running_app()
         dialog = MDDialog(
             title="Add New Category",
-            content_cls=DialogMDTextField(),
+            content_cls=DialogMDTextField(hint_text="Enter New Category"),
             type="custom",
             buttons=[
-                MDFlatButton(
+                MDRectangleFlatButton(
                     text="CANCEL",
                     text_color=app.theme_cls.primary_color,
+                    md_bg_color=app.theme_cls.accent_color,
                     on_release=self._close_dialog,
                 ),
-                MDFlatButton(
+                MDRectangleFlatButton(
                     text="OK",
-                    text_color=app.theme_cls.primary_color,
+                    text_color=app.theme_cls.accent_color,
+                    md_bg_color=[
+                        i - j
+                        for i, j in zip(app.theme_cls.primary_light, [0, 0, 0, 0.5])
+                    ],
                     on_release=self._ok_add_category_dialog,
                 ),
             ],
@@ -296,6 +319,72 @@ class Library:
         self._save_library()
         app.refresh_callback(1.0051528999999997)
 
+    def add_item_dialog(self):
+        app = App.get_running_app()
+        menu_items = [
+            {"icon": "book-alphabet", "text": "LN"},
+            {"icon": "book", "text": "Manga"},
+            {"icon": "video", "text": "Anime"},
+        ]
+        dialog = MDDialog(
+            title="Add New Item",
+            content_cls=AddItemDialog(hint_text="Enter New Item Link"),
+            type="custom",
+            buttons=[
+                MDRectangleFlatButton(
+                    text="CANCEL",
+                    text_color=app.theme_cls.primary_color,
+                    md_bg_color=app.theme_cls.accent_color,
+                    on_release=self._close_dialog,
+                ),
+                MDRectangleFlatButton(
+                    text="OK",
+                    text_color=app.theme_cls.accent_color,
+                    md_bg_color=[
+                        i - j
+                        for i, j in zip(app.theme_cls.primary_light, [0, 0, 0, 0.5])
+                    ],
+                    on_release=self._ok_add_item_dialog,
+                ),
+            ],
+        )
+        a = Factory.AddItemDialog()
+
+        self.typedialog = MDDropdownMenu(
+            caller=a.ids.drop_item,
+            items=menu_items,
+            callback=self._ok_add_item_dialog,
+            width_mult=4,
+        )
+
+        dialog.set_normal_height()
+        dialog.open()
+
+    def _ok_add_item_dialog(self, instance):
+        logger.debug("-> called")
+
+        for obj in instance.walk_reverse():
+            if isinstance(obj, MDDialog):
+                url = obj.content_cls.ids.textfield.text
+                if checkers.is_url(url):
+                    self.itemurl = url
+                    if self.itemtype not in self.ItemTypes:
+                        self.itemtype = "ln"
+                    self.add_item(link=self.itemurl, type_=self.itemtype)
+                    self._close_dialog(instance=instance)
+                else:
+                    toast("Please Enter a vaild URL")
+            elif obj == self.typedialog:
+                a = Factory.AddItemDialog()
+                a.ids.drop_item.set_item(instance.text)
+                if a.ids.drop_item.current_item not in self.ItemTypes:
+                    self.itemtype = "ln"
+                    logger.debug(self.itemtype)
+                else:
+                    self.itemtype = (a.ids.drop_item.current_item).lower()
+                    logger.debug(self.itemtype)
+                self.typedialog.dismiss()
+
     def _close_dialog(self, instance):
         # logger.debug(" -> Called")
         for obj in instance.walk_reverse():
@@ -324,3 +413,8 @@ class LibraryCategoryDialogItem(OneLineAvatarIconListItem):
 class DialogMDTextField(BoxLayout):
     """DialogMDTextField"""
 
+    hint_text = StringProperty("")
+
+
+class AddItemDialog(BoxLayout):
+    hint_text = StringProperty("")
