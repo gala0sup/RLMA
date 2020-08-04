@@ -15,6 +15,7 @@ class Scraper(Base):
     def __init__(self, link=None, wait=False, _log_level=1):
         super().__init__(link=link, wait=wait, _log_level=_log_level)
         self.type_ = Path(__file__).parent.parts[-2]
+        self.websitename = WEBSITE
 
     def _set_info(self):
 
