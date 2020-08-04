@@ -7,6 +7,7 @@ import pathlib
 
 from bs4 import BeautifulSoup
 from kivy.network.urlrequest import UrlRequest
+from kivymd.uix.snackbar import Snackbar
 
 logger = logging.getLogger("RLMA")
 
@@ -125,9 +126,8 @@ class chapter_dict(object):
         except Exception as error:
             logger.critical(f"{error}")
             raise
-
+        logger.debug("setting up Chapter List")
         for key, value in raw_json.items():
-            logger.debug(f"\tsetting up chapter {key}")
             self.dict_[key] = value
 
 
@@ -147,6 +147,7 @@ class Base:
         self.chapter_link = None
         self.about = about_dict()
         self.chapter_list = chapter_dict()
+        self.final_link = None
         """{chapter_number:{chapter_name:chapter_link}}"""
 
         self._wait = wait
@@ -160,7 +161,9 @@ class Base:
         else:
             try:
                 logger.debug("getting webpage (%s)", self.link)
-                self.webpage = UrlRequest(self.link, on_success=self._parse_webpage)
+                self.webpage = UrlRequest(
+                    self.link, on_success=self.UrlRequest_success,
+                )
                 if self._wait:
                     self.webpage.wait()
             except Exception as error:
@@ -313,17 +316,20 @@ class Base:
         if data:
             try:
                 logger.info(f"setting up using JSON data")
-                logger.debug(f"{type(data)}")
                 raw_json = data
             except Exception as error:
                 logger.critical(f"{error}")
                 raise
 
         for key in raw_json.keys():
-            logger.debug(f"setting up {key}")
             if key == "link":
                 self.link = raw_json[key]
             elif key == "about":
                 self.about.from_json(raw_json[key])
             elif key == "chapter_list":
                 self.chapter_list.from_json(raw_json[key])
+
+    # Callbacks are defined here
+
+    def UrlRequest_success(self, req, result):
+        self._parse_webpage(req=req, result=result)
