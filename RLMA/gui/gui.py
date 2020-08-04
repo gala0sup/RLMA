@@ -20,15 +20,15 @@ logger = logging.getLogger("RLMA")
 
 
 root_kv = """
-BoxLayout:
-    orientation: "vertical"
+Screen:
+    BoxLayout:
+        orientation: "vertical"
 
-    MDToolbar:
-        title: app.title
-        elevation: 10
-        md_bg_color: app.theme_cls.primary_color
+        MDToolbar:
+            title: app.title
+            elevation: 10
+            md_bg_color: app.theme_cls.primary_color
 
-    MDFloatLayout:
         MDScrollViewRefreshLayout:
             id : refresh_layout
             refresh_callback: app.refresh_callback
@@ -39,9 +39,10 @@ BoxLayout:
                 on_tab_switch: app.on_tab_switch(*args)
 
 
-        MDFloatingActionButtonSpeedDial:
-            data : app.data
-            rotation_root_button: True
+    MDFloatingActionButtonSpeedDial:
+        data : app.data
+        callback : app.FloatingActionButton_callback
+        rotation_root_button: True
 
 
 
@@ -80,7 +81,11 @@ BoxLayout:
 
 
 class RLMA(MDFloatLayout, MDApp):
-    data = {"update": "Update Category", "all-inclusive": "Update Library"}
+    data = {
+        "update": "Update Category",
+        "all-inclusive": "Update Library",
+        "plus": "Add Item",
+    }
 
     def build(self):
         self.title = "RLMA"
@@ -170,3 +175,16 @@ class RLMA(MDFloatLayout, MDApp):
             self.root.ids.refresh_layout.refresh_done()
 
         Clock.schedule_once(refresh_callback, 1)
+
+    def FloatingActionButton_callback(self, instance):
+        logger.debug(f"{instance.icon}")
+        icon = instance.icon
+        if icon == "plus":
+            """Call Add_item Dialog in library"""
+            pass
+        elif icon == "all-inclusive":
+            """update whole library"""
+            pass
+        elif icon == "update":
+            """update current category"""
+            pass
