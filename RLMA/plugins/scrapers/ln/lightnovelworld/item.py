@@ -35,20 +35,26 @@ class Scraper(Base):
             for s in wrapper:
                 divs = s.find_all("div", class_="inline")
                 if len(divs):
+
                     for div in divs:
-                        if "author" in div.find("span").string.lower():
+                        item = div.find("span").get_text().lower()
+                        if "author" in item:
                             self.about["Author"] = (
                                 div.find("strong").find("a").string.strip()
                             )
+                            logger.debug(self.about["Author"])
 
-                        if "status" in div.find("span").string.lower():
+                        elif "status" in item:
                             self.about["Status"] = div.find("strong").string.strip()
+                            logger.debug(self.about["Status"])
 
-                        if "release" in div.find("span").string.lower():
+                        elif "release" in item:
                             self.about["Release"] = div.find("strong").string.strip()
+                            logger.debug(self.about["Release"])
 
-                        if "update" in div.find("span").string.lower():
+                        elif "update" in item:
                             self.about["Updated"] = div.find("strong").string.strip()
+                            logger.debug(self.about["Updated"])
             div = (
                 self.prased_webpage.find_all("div", class_="summary")[0]
                 .find_all(class_="content")[0]
@@ -63,12 +69,8 @@ class Scraper(Base):
                 self.about["Summary"] = summary
 
             cur = self.about["Chapters"]
+            li = self.prased_webpage.find("ul", class_="chapter-list").find_all("li")
 
-            li = (
-                self.prased_webpage.find("section", id="chapter")
-                .find("ul", class_="chapter-list")
-                .find_all("li")
-            )
             for a in li:
                 self.chapter_list[cur] = {
                     f"{a.find('a')['title']}": f"https://www.{WEBSITE}.com{a.find('a')['href']}"
@@ -76,19 +78,17 @@ class Scraper(Base):
                 cur -= 1
 
             link_copy = self.link
-            pagination = (
-                self.prased_webpage.find("section", id="chapter")
-                .find_all("div", class_="pagination-container")[0]
-                .find_all("a")[0:-1]
-            )
 
-            for a in pagination:
+            pagination = self.prased_webpage.find("ul", class_="pagination").find_all(
+                "li"
+            )[1:-1]
+
+            for li in pagination:
+                a = li.find("a")
                 self.link = f"https://www.{WEBSITE}.com{a['href']}"
                 self._get_webpage()
-                li = (
-                    self.prased_webpage.find("section", id="chapter")
-                    .find("ul", class_="chapter-list")
-                    .find_all("li")
+                li = self.prased_webpage.find("ul", class_="chapter-list").find_all(
+                    "li"
                 )
 
                 for a in li:
