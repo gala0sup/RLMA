@@ -79,6 +79,8 @@ class LibraryItem(SmartTileWithLabel):
                     wait=self.wait,
                 ).getScraper()
                 self.item_from_json(data=self.json_data)
+                self.text = self.Scraper.about["Name"]
+                self.source = self.source = str(RLMAPATH / "300.png")
             else:
                 self.Scraper = Scraper(link=link, type_=type_, wait=wait).getScraper()
             self.init = True
@@ -91,13 +93,17 @@ class LibraryItem(SmartTileWithLabel):
         logger.debug("-> called")
         self.Scraper.get_info()
         self.text = self.Scraper.about["Name"]
-        self.source = self.Scraper.about["CoverImage"]
+        self.source = str(RLMAPATH / "300.png")
         self.init = True
 
     def item_get_info(self, full=True):
         return self.Scraper.info(full=full)
 
     def item_add_category(self, category):
+        if not isinstance(category, type("string")):
+            raise ValueError(
+                f"{category} must be a string not {type(category).__name__}"
+            )
         self.categories.append(category)
 
     def item_to_json(self):
@@ -157,7 +163,30 @@ class Library:
                     self.categories = value
         self.tabs.clear()
         self.LibraryItems.clear()
-
+        for path in self.LibraryPaths:
+            base_path = pathlib.Path(path)
+            # library path
+            for obj in base_path.iterdir():
+                # scraper folder
+                if obj.is_dir():
+                    # item dir
+                    for item_dir in obj.iterdir():
+                        try:
+                            with open(
+                                str(item_dir / "info" / "info.json"),
+                                "r",
+                                encoding="utf-8",
+                            ) as JSON_FILE:
+                                logger.debug(
+                                    f"adding item from {str( item_dir /'info'/ 'info.json')}"
+                                )
+                                JSON = json.load(JSON_FILE)
+                                tmp_item = LibraryItem()
+                                tmp_item.item_set(json_data=JSON)
+                                tmp_item.item_add_category(self.categories[0])
+                                self.LibraryItems.append(tmp_item)
+                        except Exception as e:
+                            logger.warn(e)
         self.tabs = {
             tab_label: LibraryCategory(text=tab_label) for tab_label in self.categories
         }
@@ -176,16 +205,36 @@ class Library:
         self._save_library()
 
     def add_item(self, link, type_):
+        app = App.get_running_app()
         logger.debug(f"-> called {link},{type_}")
         for item in self.LibraryItems:
             if link == item.Scraper.link:
                 logger.debug(f"Item with link {link} already in library")
                 return -1
         tmp_LibraryItem = LibraryItem()
-        tmp_LibraryItem.item_set(link=link, type_=type_)
-        tmp_LibraryItem.item_add_category("Default")
+        tmp_LibraryItem.item_set(link=link, type_=type_, wait=True)
+        tmp_LibraryItem.item_add_category(self.categories[0])
+        toast("adding item ...")
         tmp_LibraryItem.item_update()
         self.LibraryItems.append(tmp_LibraryItem)
+        self._save_item((len(self.LibraryItems) - 1))
+        app.refresh_callback(1.0051528999999997)
+        logger.debug(
+            f"added {self.LibraryItems[-1].Scraper.about['Name']} to library in category {self.LibraryItems[-1].categories}"
+        )
+        toast(f"added to {self.LibraryItems[-1].categories[0]} category")
+
+    def _save_item(self, index):
+        for path in self.LibraryPaths:
+            base_path = pathlib.Path(path)
+            item = self.LibraryItems[index]
+            logger.debug(f"Saving item {item.text}")
+            scraper_name = item.Scraper.websitename
+            item_dir = base_path / scraper_name / item.text / "info"
+            item_dir.mkdir(exist_ok=True, parents=True)
+            (item_dir / "info.json").touch(exist_ok=True)
+            with open(str(item_dir / "info.json"), "w", encoding="utf-8") as JSON_FILE:
+                JSON_FILE.write(item.item_to_json())
 
     def _save_library(self):
         for path in self.LibraryPaths:
@@ -370,7 +419,8 @@ class Library:
                     self.itemurl = url
                     if self.itemtype not in self.ItemTypes:
                         self.itemtype = "ln"
-                    self.add_item(link=self.itemurl, type_=self.itemtype)
+                    if self.add_item(link=self.itemurl, type_=self.itemtype) == -1:
+                        toast("Item Already in Library")
                     self._close_dialog(instance=instance)
                 else:
                     toast("Please Enter a vaild URL")
