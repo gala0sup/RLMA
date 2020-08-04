@@ -97,8 +97,6 @@ class Scraper(Base):
                     }
                     cur -= 1
             self.link = link_copy
-            # logging.debug("%s ------- %s",len(a),a)
-            # logging.debug("%s ------- %s",len(a),a)
         except Exception as error:
             logger.error(error)
             raise
