@@ -47,7 +47,6 @@ Screen:
         rotation_root_button: True
 
 
-
 <LibraryCategoryDialogItem>
     on_release: root.set_icon(check)
 
@@ -121,9 +120,6 @@ class RLMA(MDFloatLayout, MDApp):
         async def set_RLMA():
             self.library.do_library()
             await asynckivy.sleep(0)
-            for tab_lable, tab_instance in self.library.tabs.items():
-                logger.debug(f"adding {tab_lable} <======> {tab_instance}")
-                self.root.ids.tabs_.add_widget(tab_instance)
 
         asynckivy.start(set_RLMA())
 
@@ -131,9 +127,6 @@ class RLMA(MDFloatLayout, MDApp):
         async def set_RLMA():
             self.library.do_library(refresh=True)
             await asynckivy.sleep(0)
-            for tab_lable, tab_instance in self.library.tabs.items():
-                logger.debug(f"adding {tab_lable} <======> {tab_instance}")
-                self.root.ids.tabs_.add_widget(tab_instance)
 
         asynckivy.start(set_RLMA())
 
@@ -145,11 +138,6 @@ class RLMA(MDFloatLayout, MDApp):
         :param instance_tab_label: <kivymd.uix.tab.MDTabsLabel object>;
         :param tab_text: text or name icon of tab;
         """
-        # if instance_tabinstance_tabs.ids.carousel.slides:
-        #     logger.debug(obj)
-        #     if obj == instance_tab:
-        #         logger.debug("got it")
-        #         self.library.add_category()
 
         if instance_tabs.ids.carousel.slides.index(instance_tab) == (
             len(instance_tabs.ids.carousel.slides) - 1
