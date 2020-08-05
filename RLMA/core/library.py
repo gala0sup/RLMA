@@ -150,6 +150,7 @@ class Library:
                     self.categories.append("Default")
 
     def do_library(self, refresh=False):
+        app = App.get_running_app()
         logger.info(f"Building Library")
         # from JSON
         if self.json:
@@ -161,7 +162,6 @@ class Library:
                         value.append("Default")
                     logger.debug(f"setting {key}")
                     self.categories = value
-        self.tabs.clear()
         self.LibraryItems.clear()
         for path in self.LibraryPaths:
             base_path = pathlib.Path(path)
@@ -170,6 +170,7 @@ class Library:
                 # scraper folder
                 if obj.is_dir():
                     # item dir
+                    logger.debug(f"adding items from {str(obj)}")
                     for item_dir in obj.iterdir():
                         try:
                             with open(
@@ -177,9 +178,6 @@ class Library:
                                 "r",
                                 encoding="utf-8",
                             ) as JSON_FILE:
-                                logger.debug(
-                                    f"adding item from {str( item_dir /'info'/ 'info.json')}"
-                                )
                                 JSON = json.load(JSON_FILE)
                                 tmp_item = LibraryItem()
                                 tmp_item.item_set(json_data=JSON)
@@ -187,19 +185,23 @@ class Library:
                                 self.LibraryItems.append(tmp_item)
                         except Exception as e:
                             logger.warn(e)
-        self.tabs = {
-            tab_label: LibraryCategory(text=tab_label) for tab_label in self.categories
-        }
-        self.tabs["edit"] = LibraryCategory(
-            text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
-        )
+        tabs_root = app.root.ids.tabs_
+        # add Categories
+        for category in self.categories:
+            tabs_root.add_widget(LibraryCategory(text=category))
 
-        for LibraryItem_ in self.LibraryItems:
-            for category in LibraryItem_.categories:
-                if category in self.tabs.keys():
-                    self.tabs[category].ids.LibraryCategoryLayout.add_widget(
-                        LibraryItem_
-                    )
+        # add Item to Categories
+        for tab in tabs_root.get_tab_list():
+            for Item in self.LibraryItems:
+                for category in Item.categories:
+                    if tab.text == category:
+                        tab.tab.ids.LibraryCategoryLayout.add_widget(Item)
+
+        tabs_root.add_widget(
+            LibraryCategory(
+                text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
+            )
+        )
 
         self._make_categoriesDialog()
         self._save_library()
@@ -236,13 +238,13 @@ class Library:
             with open(str(item_dir / "info.json"), "w", encoding="utf-8") as JSON_FILE:
                 JSON_FILE.write(item.item_to_json())
 
-    def _save_library(self):
+    def _save_library(self, dt=None):
         for path in self.LibraryPaths:
             with open(
                 str(pathlib.Path(path) / "Library.json"), "w", encoding="utf-8"
             ) as JSON_FILE:
                 json = self.to_json()
-                logger.debug(f"saving json {json}")
+                logger.debug(f"saving library")
                 JSON_FILE.write(json)
 
     def to_json(self):
@@ -340,14 +342,18 @@ class Library:
         app = App.get_running_app()
         Clock.schedule_once(self.categoriesDialog.dismiss)
         if self.active_check != None:
-            logger.debug(f"deleting {self.active_check.text}")
+            root_tab = app.root.ids.tabs_
+            tab_list = root_tab.get_tab_list()
+            for tab in tab_list:
+                if self.active_check.text == tab.text:
+                    logger.debug(f"deleting {tab.text}")
+                    root_tab.remove_widget(tab)
             self.categories.pop(self.categories.index(self.active_check.text))
             self._save_library()
             self._make_categoriesDialog()
             self.active_check = None
 
         Clock.schedule_once(self.categoriesDialog.open)
-        app.refresh_callback(1.0051528999999997)
 
     def _ok_add_category_dialog(self, instance):
         app = App.get_running_app()
@@ -359,14 +365,30 @@ class Library:
                     pass
                 else:
                     logger.debug(f"adding {text}")
+                    # get the Edit Category tab
+                    edit_category_tab = app.root.ids.tabs_.get_tab_list()[0]
+
+                    # remove Edit Category tab
+                    app.root.ids.tabs_.remove_widget(edit_category_tab)
+
+                    # add new tab
+                    app.root.ids.tabs_.add_widget(LibraryCategory(text=text))
+
+                    # re-add Edit Category tab
+                    app.root.ids.tabs_.add_widget(
+                        LibraryCategory(
+                            text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
+                        )
+                    )
+
                     self.categories.append(str(text))
                     self._make_categoriesDialog()
                     self.added_cat = True
 
         self._close_dialog(instance=instance)
+
+        Clock.schedule_once(self._save_library)
         Clock.schedule_once(self.categoriesDialog.open)
-        self._save_library()
-        app.refresh_callback(1.0051528999999997)
 
     def add_item_dialog(self):
         app = App.get_running_app()
