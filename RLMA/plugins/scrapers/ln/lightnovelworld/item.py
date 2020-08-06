@@ -2,6 +2,7 @@ import logging
 from math import ceil
 from pathlib import Path
 
+from kivymd.uix.snackbar import Snackbar
 
 from plugins.scrapers.base.item import Base
 
@@ -12,8 +13,13 @@ logger = logging.getLogger("RLMA")
 
 
 class Scraper(Base):
-    def __init__(self, link=None, wait=False, _log_level=1):
-        super().__init__(link=link, wait=wait, _log_level=_log_level)
+    def __init__(self, link=None, wait=False, _log_level=1, LibraryItemInstance=None):
+        super().__init__(
+            link=link,
+            wait=wait,
+            _log_level=_log_level,
+            LibraryItemInstance=LibraryItemInstance,
+        )
         self.type_ = Path(__file__).parent.parts[-2]
         self.websitename = WEBSITE
 
@@ -69,35 +75,8 @@ class Scraper(Base):
             if len(summary) > 1:
                 self.about["Summary"] = summary
 
-            cur = self.about["Chapters"]
-            li = self.prased_webpage.find("ul", class_="chapter-list").find_all("li")
+            self.LibraryItemInstance.item_set_info()
 
-            for a in li:
-                self.chapter_list[cur] = {
-                    f"{a.find('a')['title']}": f"https://www.{WEBSITE}.com{a.find('a')['href']}"
-                }
-                cur -= 1
-
-            link_copy = self.link
-
-            pagination = self.prased_webpage.find("ul", class_="pagination").find_all(
-                "li"
-            )[1:-1]
-
-            for li in pagination:
-                a = li.find("a")
-                self.link = f"https://www.{WEBSITE}.com{a['href']}"
-                self._get_webpage()
-                li = self.prased_webpage.find("ul", class_="chapter-list").find_all(
-                    "li"
-                )
-
-                for a in li:
-                    self.chapter_list[cur] = {
-                        f"{a.find('a')['title']}": f"https://www.{WEBSITE}.com{a.find('a')['href']}"
-                    }
-                    cur -= 1
-            self.link = link_copy
         except Exception as error:
             logger.error(error)
             raise
@@ -109,3 +88,29 @@ class Scraper(Base):
         for p in div:
             content.append(p.string)
         return content
+
+    def _set_chapter_list(self):
+        li = self.prased_webpage.find("ul", class_="chapter-list").find_all("li")
+
+        for a in li:
+            self.chapter_list[int(a["data-volumeno"])] = {
+                f"{a.find('a')['title']}": f"https://www.{WEBSITE}.com{a.find('a')['href']}"
+            }
+
+        pagination = self.prased_webpage.find("ul", class_="pagination").find_all("li")[
+            1:-1
+        ]
+
+        link_copy = self.link
+
+        for li in pagination:
+            a = li.find("a")
+            self.link = f"https://www.{WEBSITE}.com{a['href']}"
+            self._get_webpage(wait=True)
+            li = self.prased_webpage.find("ul", class_="chapter-list").find_all("li")
+
+            for a in li:
+                self.chapter_list[int(a["data-volumeno"])] = {
+                    f"{a.find('a')['title']}": f"https://www.{WEBSITE}.com{a.find('a')['href']}"
+                }
+        self.link = link_copy

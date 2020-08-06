@@ -42,6 +42,9 @@ class about_dict(object):
     def __getitem__(self, key):
         return self.dict_[key]
 
+    def __len__(self):
+        return len(self.dict_)
+
     def keys(self):
         return self.dict_.keys()
 
@@ -109,6 +112,9 @@ class chapter_dict(object):
             raise KeyError(f"{key} not defined")
         return self.dict_[key]
 
+    def __len__(self):
+        return len(self.dict_)
+
     def keys(self):
         return self.dict_.keys()
 
@@ -119,8 +125,6 @@ class chapter_dict(object):
         return self.dict_
 
     def from_json(self, data=None):
-        if not data:
-            raise ValueError("No data provided")
         try:
             raw_json = data
         except Exception as error:
@@ -132,7 +136,7 @@ class chapter_dict(object):
 
 
 class Base:
-    def __init__(self, link=None, wait=False, _log_level=0):
+    def __init__(self, LibraryItemInstance=None, link=None, wait=False, _log_level=0):
 
         if link:
             self.initialized = True
@@ -142,17 +146,18 @@ class Base:
         self.type_ = None
         self.webpage = None
         self.prased_webpage = None
-        self.EMPTY = None
+        self.temp0 = None
+        self.temp = None
         self.link = link
         self.chapter_link = None
         self.about = about_dict()
         self.chapter_list = chapter_dict()
         self.final_link = None
-        """{chapter_number:{chapter_name:chapter_link}}"""
+        logger.debug(type(LibraryItemInstance))
+        self.LibraryItemInstance = LibraryItemInstance
+        self.wait = wait
 
-        self._wait = wait
-
-    def _get_webpage(self):
+    def _get_webpage(self, wait=False):
         if not self.initialized:
             logger.error("class not Initialised")
             raise NotInitializedError(
@@ -164,7 +169,10 @@ class Base:
                 self.webpage = UrlRequest(
                     self.link, on_success=self.UrlRequest_success,
                 )
-                if self._wait:
+                if not wait:
+                    if self.wait:
+                        self.webpage.wait()
+                else:
                     self.webpage.wait()
             except Exception as error:
                 logger.error(error)
@@ -172,7 +180,7 @@ class Base:
                     "There was some Problem in getting the webpage (%s)", self.link
                 )
             finally:
-                if self._wait:
+                if self.wait:
                     logger.debug(
                         "Status Code Returned by %s is %s",
                         self.link,
@@ -190,6 +198,7 @@ class Base:
                 logger.debug("prasing webpage (%s)", self.link)
                 self.prased_webpage = BeautifulSoup(result, "lxml")
                 logger.debug("prased webpage")
+                self._set_info()
             except Exception as error:
                 logger.error(error)
                 logger.error("unable to prase webpage")
@@ -210,7 +219,6 @@ class Base:
         logger.info("getting info of (%s)", self.link)
         try:
             self._get_webpage()
-            self._set_info()
 
         except Exception as error:
             logger.error(error)

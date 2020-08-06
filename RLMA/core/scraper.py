@@ -6,10 +6,11 @@ log = logging.getLogger("RLMA")
 
 
 class Scraper:
-    def __init__(self, link, type_, wait):
-        log.debug(f"got values {link} , {type_} , {wait}")
+    def __init__(self, LibraryItemInstance, link, type_, wait):
+        log.debug(f"got values {link} , {type_} , {wait},{type(LibraryItemInstance)}")
         self.link = link
         self.wait = wait
+        self.LibraryItemInstance = LibraryItemInstance
         if type_ not in ["ln", "manga", "anime"]:
             raise ValueError(f"Invalid type_ value {type_}")
         self.type_ = type_
@@ -28,7 +29,11 @@ class Scraper:
                     package=".core.scraper",
                 ),
                 "Scraper",
-            )(link=self.link, wait=self.wait)
+            )(
+                LibraryItemInstance=self.LibraryItemInstance,
+                link=self.link,
+                wait=self.wait,
+            )
         except ImportError as error:
             log.critical(f"no Scraper for website {{{self.websitename}}}")
             log.error(error)
