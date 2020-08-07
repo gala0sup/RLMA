@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from kivy.network.urlrequest import UrlRequest
 from kivymd.uix.snackbar import Snackbar
 
+from utils import request_headers
+
 logger = logging.getLogger("RLMA")
 
 
@@ -167,7 +169,10 @@ class Base:
             try:
                 logger.debug("getting webpage (%s)", self.link)
                 self.webpage = UrlRequest(
-                    self.link, on_success=self.UrlRequest_success,
+                    self.link,
+                    debug=True,
+                    on_success=self.UrlRequest_success,
+                    req_headers=request_headers,
                 )
                 if not wait:
                     if self.wait:

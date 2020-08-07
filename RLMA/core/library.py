@@ -8,7 +8,7 @@ import ast
 from kivy.clock import Clock
 from kivy.config import ConfigParser
 from kivymd.app import App
-from kivymd.uix.imagelist import SmartTileWithLabel
+from kivymd.uix.card import MDCard
 from kivy.uix.scrollview import ScrollView
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.boxlayout import BoxLayout
@@ -30,26 +30,21 @@ from validator_collection import checkers
 
 from .scraper import Scraper
 from utils import RLMAPATH
+from utils import request_headers
 
-
-# Config.set("kivy", "log_level", "debug")
 
 logger = logging.getLogger("RLMA")
 
 
-class LibraryItem(SmartTileWithLabel):
+class LibraryItem(MDCard):
     """class for LibraryItem """
 
+    source = StringProperty()
+    shadow = StringProperty(str(RLMAPATH / "gui" / "img" / "shadow.png"))
+    text = StringProperty("LibraryItem")
+
     def __init__(self, *args, **kwargs):
-
         super().__init__(**kwargs)
-
-        self.text = "LibraryItem"
-        self.size_hint = None, None
-        self.height = 300
-        self.width = 300
-        self.mipmap = True
-        self.font_style = "Subtitle1"
 
         self.init = False
         self.json_data = None
@@ -57,6 +52,7 @@ class LibraryItem(SmartTileWithLabel):
         self.updated = False
         self.saved = False
         self.categories = []
+        self.dir = None
         # self.update()
 
     def on_press(self, *args, **kwargs):
@@ -72,9 +68,11 @@ class LibraryItem(SmartTileWithLabel):
         type_=None,
         wait=False,
         LibraryItemInstance=None,
+        LibraryItemDir=None,
     ):
         self.json_data = json_data
         try:
+            self.dir = pathlib.Path(LibraryItemDir)
             if self.json_data:
                 scraper_init = Scraper(
                     LibraryItemInstance=LibraryItemInstance,
@@ -84,8 +82,18 @@ class LibraryItem(SmartTileWithLabel):
                 )
                 self.scraper = scraper_init.getScraper()
                 self.item_from_json(data=self.json_data)
-                self.text = self.scraper.about["Name"]
-                self.source = self.source = str(RLMAPATH / "300.png")
+                self.text = str(self.scraper.about["Name"])
+                self.source = str(
+                    sorted(
+                        (
+                            self.dir
+                            / self.scraper.websitename
+                            / self.scraper.about["Name"]
+                            / "info"
+                        ).glob("CoverImage*")
+                    )[0]
+                )
+                self.set = True
                 self.saved = True
                 self.updated = False
             else:
@@ -110,15 +118,33 @@ class LibraryItem(SmartTileWithLabel):
         self.init = True
         self.updated = True
         self.saved = False
+        self.set = False
 
     def item_get_info(self, full=True):
         return self.scraper.info(full=full)
 
     def item_set_info(self):
+        self.text = str(self.scraper.about["Name"])
+        info_dir = (
+            self.dir / self.scraper.websitename / self.scraper.about["Name"] / "info"
+        )
+        info_dir.mkdir(exist_ok=True, parents=True)
 
-        self.text = self.scraper.about["Name"]
-        self.source = self.source = str(RLMAPATH / "300.png")
-        logger.debug(f"added {self.text} to library in category {self.categories}")
+        cover_image_path = str(
+            self.dir
+            / self.scraper.websitename
+            / self.scraper.about["Name"]
+            / "info"
+            / "CoverImage."
+        ) + str(self.scraper.about["CoverImage"].split(".")[-1])
+
+        pathlib.Path(cover_image_path).touch(exist_ok=True)
+        self.item_downloader(
+            self.scraper.about["CoverImage"], file_path=cover_image_path,
+        )
+        logger.debug(f"added {self.text} to library in category {self.categories[0]}")
+        self.updated = True
+        self.set = True
 
     def item_add_category(self, category):
         if not isinstance(category, type("string")):
@@ -128,6 +154,49 @@ class LibraryItem(SmartTileWithLabel):
         self.categories.append(category)
         self.updated = True
         self.saved = False
+
+    def item_downloader(self, link, file_path=None):
+        if file_path:
+            req = UrlRequest(
+                url=link,
+                debug=True,
+                on_success=self.downloader_on_success,
+                file_path=file_path,
+                req_headers=request_headers,
+            )
+        else:
+            req = UrlRequest(
+                url=link,
+                debug=True,
+                on_success=self.downloader_on_success,
+                req_headers=request_headers,
+            )
+
+    def downloader_on_success(self, req, result):
+        logger.debug("finished %s", req.url)
+        if req.url == self.scraper.about["CoverImage"]:
+            cover_image_path = str(
+                self.dir
+                / self.scraper.websitename
+                / self.scraper.about["Name"]
+                / "info"
+                / "CoverImage."
+            ) + str(self.scraper.about["CoverImage"].split(".")[-1])
+            self.source = cover_image_path
+
+    def item_save(self):
+        if self.set:
+            info_dir = (
+                self.dir
+                / self.scraper.websitename
+                / self.scraper.about["Name"]
+                / "info"
+            )
+            info_dir.mkdir(exist_ok=True, parents=True)
+            info_json = info_dir / "info.json"
+            info_json.touch(exist_ok=True)
+            with info_json.open("w", encoding="utf-8") as JSON_FILE:
+                JSON_FILE.write(self.item_to_json())
 
     def item_to_json(self):
         return self.scraper.to_json()
@@ -207,7 +276,9 @@ class Library:
                             tmp_item = LibraryItem()
                             tmp_item.item_add_category(self.categories[0])
                             tmp_item.item_set(
-                                json_data=JSON, LibraryItemInstance=tmp_item
+                                json_data=JSON,
+                                LibraryItemInstance=tmp_item,
+                                LibraryItemDir=path,
                             )
                             self.LibraryItems.append(tmp_item)
                         except Exception as e:
@@ -241,11 +312,16 @@ class Library:
             if link == item.scraper.link:
                 logger.debug(f"Item with link {link} already in library")
                 return -1
+
         tmp_LibraryItem = LibraryItem()
         tmp_LibraryItem.item_add_category(self.categories[0])
         tmp_LibraryItem.item_set(
-            LibraryItemInstance=tmp_LibraryItem, link=link, type_=type_
+            LibraryItemInstance=tmp_LibraryItem,
+            link=link,
+            type_=type_,
+            LibraryItemDir=self.LibraryPaths[0],
         )
+
         toast("adding item ...")
         tmp_LibraryItem.item_update()
         self.LibraryItems.append(tmp_LibraryItem)
@@ -257,34 +333,12 @@ class Library:
 
     def _save_item(self, index, *largs):
         if index >= 0:
-            for path in self.LibraryPaths:
-                base_path = pathlib.Path(path)
-                item = self.LibraryItems[index]
-                logger.debug(f"Saving item {item.text}")
-                scraper_name = item.scraper.websitename
-                item_dir = base_path / scraper_name / item.text / "info"
-                item_dir.mkdir(exist_ok=True, parents=True)
-                (item_dir / "info.json").touch(exist_ok=True)
-                with open(
-                    str(item_dir / "info.json"), "w", encoding="utf-8"
-                ) as JSON_FILE:
-                    JSON_FILE.write(item.item_to_json())
+            self.LibraryItems[index].item_save()
+
         if index == -1:
-            # save all Library items
-            for path in self.LibraryPaths:
-                base_path = pathlib.Path(path)
-                for item in self.LibraryItems:
-                    if not item.saved:
-                        logger.debug(f"Saving item {item.text}")
-                        scraper_name = item.scraper.websitename
-                        item_dir = base_path / scraper_name / item.text / "info"
-                        item_dir.mkdir(exist_ok=True, parents=True)
-                        (item_dir / "info.json").touch(exist_ok=True)
-                        with open(
-                            str(item_dir / "info.json"), "w", encoding="utf-8"
-                        ) as JSON_FILE:
-                            JSON_FILE.write(item.item_to_json())
-                        item.saved = True
+            # save  and check all Library items
+            for item in self.LibraryItems:
+                item.item_save()
 
     def _save_library(self, dt=None):
         for path in self.LibraryPaths:
@@ -294,13 +348,6 @@ class Library:
                 json = self.to_json()
                 logger.debug(f"saving library")
                 JSON_FILE.write(json)
-
-    def downloader(self, link, path):
-        # to-do check if the path is inside library paths
-        path = str(pathlib.Path(path).resolve)
-        req = UrlRequest(
-            url=link, on_success=self.downloader_on_success, file_path=path
-        )
 
     def to_json(self):
         return json.dumps({"categories": self.categories})
@@ -520,9 +567,6 @@ class Library:
         self.added_cat = False
 
     # callbacks here
-
-    def downloader_on_success(self, req, result):
-        logger.debug("Downloaded  %s Saved to %s", req.url, req.file_path)
 
 
 class LibraryCategory(ScrollView, MDTabsBase):

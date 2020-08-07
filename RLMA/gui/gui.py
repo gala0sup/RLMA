@@ -89,8 +89,37 @@ Screen:
     MDStackLayout:
         id : LibraryCategoryLayout
         adaptive_height : True
-        padding : dp(4), dp(4)
-        spacing : dp(4)
+        padding : dp(10), dp(10)
+        spacing : dp(10)
+<LibraryItem>
+    id : Item
+    elevation: 12
+    size_hint: None,None
+    size: "150dp", "200dp"
+    radius: [(15 / self.width) * 100, ]
+    RelativeLayout:
+        FitImage:
+            id : item_image
+            source: root.source
+            size_hint: None, None
+            size: Item.size
+            radius: Item.radius
+
+        FitImage:
+            source: root.shadow
+            size_hint_y: None
+            height: "250dp"
+            radius: Item.radius
+        MDLabel:
+            font_style : "Button"
+            text: root.text
+            size_hint_y: None
+            height: self.texture_size[1]
+            x: "5dp"
+            y: "10dp"
+            theme_text_color : "Custom"
+            text_color : [1,1,1,1]
+
 """
 
 
@@ -113,11 +142,6 @@ class RLMA(MDFloatLayout, MDApp):
         Config = RlmaConfig()
         Config.run()
         RlmaConfig.Config.write()
-        Config.Config.set(
-            "network",
-            "useragent",
-            "RLMA (https://github.com/gala0sup/RLMA) Mozilla/5.0 (Linux; Android 8.0.0; SM-G960F Build/R16NW) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/62.0.3202.84 Mobile Safari/537.36",
-        )
         self.library = Library()
         self.set_RLMA()
 
