@@ -16,8 +16,7 @@ from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import BoxLayout
-from kivymd.uix.button import (MDFlatButton, MDRaisedButton,
-                               MDRectangleFlatButton)
+from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarIconListItem
