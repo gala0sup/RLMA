@@ -1,37 +1,34 @@
-from functools import partial
+import ast
 import json
 import logging
-from random import choice
 import pathlib
-import ast
+from functools import partial
+from random import choice
 
 from kivy.clock import Clock
 from kivy.config import ConfigParser
-from kivymd.app import App
-from kivymd.uix.card import MDCard
+from kivy.factory import Factory
+from kivy.network.urlrequest import UrlRequest
+from kivy.properties import StringProperty
 from kivy.uix.scrollview import ScrollView
-from kivymd.uix.tab import MDTabsBase
-from kivymd.uix.boxlayout import BoxLayout
-from kivymd.uix.list import OneLineAvatarIconListItem
-from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRectangleFlatButton
-from kivymd.uix.dialog import MDDialog
+from kivymd.app import App
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
-from kivy.clock import Clock
 from kivymd.toast import toast
-from kivy.properties import StringProperty
+from kivymd.uix.boxlayout import BoxLayout
+from kivymd.uix.button import (MDFlatButton, MDRaisedButton,
+                               MDRectangleFlatButton)
+from kivymd.uix.card import MDCard
+from kivymd.uix.dialog import MDDialog
+from kivymd.uix.list import OneLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
-from kivy.factory import Factory
 from kivymd.uix.snackbar import Snackbar
-from kivy.network.urlrequest import UrlRequest
-
+from kivymd.uix.tab import MDTabsBase
 from validator_collection import checkers
 
+from utils import RLMAPATH, request_headers
 
 from .scraper import Scraper
-from utils import RLMAPATH
-from utils import request_headers
-
 
 logger = logging.getLogger("RLMA")
 
@@ -139,9 +136,10 @@ class LibraryItem(MDCard):
         ) + str(self.scraper.about["CoverImage"].split(".")[-1])
 
         pathlib.Path(cover_image_path).touch(exist_ok=True)
-        self.item_downloader(
-            self.scraper.about["CoverImage"], file_path=cover_image_path,
-        )
+        if self.source != cover_image_path:
+            self.item_downloader(
+                self.scraper.about["CoverImage"], file_path=cover_image_path,
+            )
         logger.debug(f"added {self.text} to library in category {self.categories[0]}")
         self.updated = True
         self.set = True

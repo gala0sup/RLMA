@@ -1,15 +1,12 @@
-from os import environ
-import pathlib
 import logging
+import pathlib
+from os import environ
 
-
-from kivy.utils import platform
-from kivy.config import ConfigParser
 from kivy.app import App
-
+from kivy.config import ConfigParser
+from kivy.utils import platform
 from kivymd.toast import toast
 from kivymd.uix.snackbar import Snackbar
-
 
 log = logging.getLogger("RLMA")
 

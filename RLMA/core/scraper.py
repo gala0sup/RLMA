@@ -1,5 +1,6 @@
 import importlib
 import logging
+
 import tldextract as tld
 
 log = logging.getLogger("RLMA")
@@ -37,4 +38,3 @@ class Scraper:
         except ImportError as error:
             log.critical(f"no Scraper for website {{{self.websitename}}}")
             log.error(error)
-

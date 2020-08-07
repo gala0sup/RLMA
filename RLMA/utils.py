@@ -1,5 +1,6 @@
-from plyer import storagepath
 import pathlib
+
+from plyer import storagepath
 
 RLMAPATH = pathlib.Path(pathlib.Path(__file__).parent)
 APPLICATION_DIR = storagepath.get_application_dir()

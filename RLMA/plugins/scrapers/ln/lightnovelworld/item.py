@@ -6,7 +6,6 @@ from kivymd.uix.snackbar import Snackbar
 
 from plugins.scrapers.base.item import Base
 
-
 WEBSITE = Path(__file__).parent.parts[-1]
 
 logger = logging.getLogger("RLMA")

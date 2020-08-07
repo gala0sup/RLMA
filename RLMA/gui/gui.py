@@ -1,21 +1,18 @@
-from kivy.clock import Clock
-from kivymd.uix.refreshlayout import MDScrollViewRefreshLayout
-from core.library import LibraryCategory
-from core.library import LibraryItem
-from core.library import Library
-from kivy.metrics import dp
-from kivymd.uix.floatlayout import MDFloatLayout
-from kivymd.app import MDApp
-from kivymd.uix.tab import MDTabsBase
-from kivymd.uix.tab import MDTabsBar
-from kivymd.uix.tab import MDTabsMain
-from kivymd.uix.label import MDLabel
-from kivymd.uix.gridlayout import MDGridLayout
-from kivy.lang import Builder
-from kivymd.utils import asynckivy
-from kivy.factory import Factory
-
 import logging
+
+from kivy.clock import Clock
+from kivy.factory import Factory
+from kivy.lang import Builder
+from kivy.metrics import dp
+from kivymd.app import MDApp
+from kivymd.uix.floatlayout import MDFloatLayout
+from kivymd.uix.gridlayout import MDGridLayout
+from kivymd.uix.label import MDLabel
+from kivymd.uix.refreshlayout import MDScrollViewRefreshLayout
+from kivymd.uix.tab import MDTabsBar, MDTabsBase, MDTabsMain
+from kivymd.utils import asynckivy
+
+from core.library import Library, LibraryCategory, LibraryItem
 
 logger = logging.getLogger("RLMA")
 

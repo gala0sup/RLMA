@@ -1,9 +1,9 @@
 """Base class for light novel scrapers"""
 
-from math import ceil
 import json
 import logging
 import pathlib
+from math import ceil
 
 from bs4 import BeautifulSoup
 from kivy.network.urlrequest import UrlRequest

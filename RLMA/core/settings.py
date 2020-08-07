@@ -1,6 +1,5 @@
 import logging
 
-
 JSON = """
 [
     {
@@ -27,4 +26,3 @@ JSON = """
     }
 ]
 """
-
