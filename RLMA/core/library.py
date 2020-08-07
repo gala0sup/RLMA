@@ -508,7 +508,7 @@ class Library:
                     on_release=self._close_dialog,
                 ),
                 MDRectangleFlatButton(
-                    text="OK",
+                    text="ADD",
                     text_color=app.theme_cls.accent_color,
                     md_bg_color=[
                         i - j
@@ -526,8 +526,6 @@ class Library:
             callback=self._ok_add_item_dialog,
             width_mult=4,
         )
-
-        dialog.set_normal_height()
         dialog.open()
 
     def _ok_add_item_dialog(self, instance):

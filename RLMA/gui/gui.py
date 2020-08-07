@@ -53,6 +53,9 @@ Screen:
         group: "check" 
 
 <DialogMDTextField>
+    spacing : "12dp"
+    size_hint_y: None
+    height: "50dp"
     MDTextField:
         id : textfield
         hint_text: root.hint_text
@@ -62,6 +65,10 @@ Screen:
 
 <AddItemDialog>
     orientation: "vertical"
+    spacing : "12dp"
+    size_hint_y: None
+    height: "100dp"
+
     MDTextField:
         id : textfield
         hint_text: root.hint_text
@@ -88,6 +95,7 @@ Screen:
         adaptive_height : True
         padding : dp(10), dp(10)
         spacing : dp(10)
+
 <LibraryItem>
     id : Item
     elevation: 12
