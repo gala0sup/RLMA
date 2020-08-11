@@ -1,0 +1,53 @@
+#:kivy 1.11.1
+
+<LibraryCategoryDialogItem>:
+    on_release: root.set_icon(check)
+
+    CheckboxLeftWidget:
+        id: check
+        on_active : app.library.LibraryCategoryDialogItemCallback(root)
+        group: "check" 
+
+<DialogMDTextField>:
+    spacing : "12dp"
+    size_hint_y: None
+    height: "50dp"
+    MDTextField:
+        id : textfield
+        hint_text: root.hint_text
+        mode : "rectangle"
+        color_mode : "custom"
+        line_color_focus: app.theme_cls.primary_dark
+
+<AddItemDialog>:
+    orientation: "vertical"
+    spacing : "12dp"
+    size_hint_y: None
+    height: "100dp"
+
+    MDTextField:
+        id : textfield
+        hint_text: root.hint_text
+        mode : "rectangle"
+        color_mode : "custom"
+        line_color_focus: app.theme_cls.primary_dark
+
+    MDDropDownItem:
+        id: drop_item
+        text: 'LN'
+        on_release: app.library.typedialog.open()
+
+<LibraryCategory>:
+    id : tab_
+    do_scroll_x: False
+    effect_cls : "OpacityScrollEffect"
+    scroll_type : ["bars", "content"]
+    bar_pos_y : "right"    
+    bar_color : app.theme_cls.primary_dark
+    bar_inactive_color : app.theme_cls.primary_color
+    bar_width : 10
+    MDStackLayout:
+        id : LibraryCategoryLayout
+        adaptive_height : True
+        padding : dp(10), dp(10)
+        spacing : dp(10)

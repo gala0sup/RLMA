@@ -1,0 +1,28 @@
+#:kivy 1.11.1
+ScreenManager:
+    id : screen_manager
+    Screen:
+        name : "main"
+        BoxLayout:
+            orientation: "vertical"
+
+            MDToolbar:
+                title: app.title
+                elevation: 10
+                md_bg_color: app.theme_cls.primary_color
+
+            MDScrollViewRefreshLayout:
+                id : refresh_layout
+                refresh_callback: app.refresh_callback
+                root_layout : app
+                MDTabs:
+                    id: tabs_
+                    lock_swiping : True
+                    on_tab_switch: app.on_tab_switch(*args)
+
+
+        MDFloatingActionButtonSpeedDial:
+            id : FloatingDial
+            data : app.data
+            callback : app.FloatingActionButton_callback
+            rotation_root_button: True

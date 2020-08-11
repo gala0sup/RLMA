@@ -1,4 +1,5 @@
 import logging
+import pathlib
 
 from kivy.clock import Clock
 from kivy.factory import Factory
@@ -13,119 +14,9 @@ from kivymd.uix.tab import MDTabsBar, MDTabsBase, MDTabsMain
 from kivymd.utils import asynckivy
 
 from core.library import Library, LibraryCategory, LibraryItem
+from utils import RLMAPATH
 
 logger = logging.getLogger("RLMA")
-
-
-root_kv = """
-Screen:
-    BoxLayout:
-        orientation: "vertical"
-
-        MDToolbar:
-            title: app.title
-            elevation: 10
-            md_bg_color: app.theme_cls.primary_color
-
-        MDScrollViewRefreshLayout:
-            id : refresh_layout
-            refresh_callback: app.refresh_callback
-            root_layout : app
-            MDTabs:
-                id: tabs_
-                lock_swiping : True
-                on_tab_switch: app.on_tab_switch(*args)
-
-
-    MDFloatingActionButtonSpeedDial:
-        id : FloatingDial
-        data : app.data
-        callback : app.FloatingActionButton_callback
-        rotation_root_button: True
-
-
-<LibraryCategoryDialogItem>
-    on_release: root.set_icon(check)
-
-    CheckboxLeftWidget:
-        id: check
-        on_active : app.library.LibraryCategoryDialogItemCallback(root)
-        group: "check" 
-
-<DialogMDTextField>
-    spacing : "12dp"
-    size_hint_y: None
-    height: "50dp"
-    MDTextField:
-        id : textfield
-        hint_text: root.hint_text
-        mode : "rectangle"
-        color_mode : "custom"
-        line_color_focus: app.theme_cls.primary_dark
-
-<AddItemDialog>
-    orientation: "vertical"
-    spacing : "12dp"
-    size_hint_y: None
-    height: "100dp"
-
-    MDTextField:
-        id : textfield
-        hint_text: root.hint_text
-        mode : "rectangle"
-        color_mode : "custom"
-        line_color_focus: app.theme_cls.primary_dark
-
-    MDDropDownItem:
-        id: drop_item
-        text: 'LN'
-        on_release: app.library.typedialog.open()
-
-<LibraryCategory>:
-    id : tab_
-    do_scroll_x: False
-    effect_cls : "OpacityScrollEffect"
-    scroll_type : ["bars", "content"]
-    bar_pos_y : "right"    
-    bar_color : app.theme_cls.primary_dark
-    bar_inactive_color : app.theme_cls.primary_color
-    bar_width : 10
-    MDStackLayout:
-        id : LibraryCategoryLayout
-        adaptive_height : True
-        padding : dp(10), dp(10)
-        spacing : dp(10)
-
-<LibraryItem>
-    id : Item
-    elevation: 12
-    size_hint: None,None
-    size: "150dp", "200dp"
-    radius: [(15 / self.width) * 100, ]
-    RelativeLayout:
-        FitImage:
-            id : item_image
-            source: root.source
-            size_hint: None, None
-            size: Item.size
-            radius: Item.radius
-
-        FitImage:
-            source: root.shadow
-            size_hint_y: None
-            height: "250dp"
-            radius: Item.radius
-        MDLabel:
-            font_style : "Button"
-            text: root.text
-            size_hint_y: None
-            height: self.texture_size[1]
-            x: "5dp"
-            y: "10dp"
-            theme_text_color : "Custom"
-            text_color : [1,1,1,1]
-
-"""
 
 
 class RLMA(MDFloatLayout, MDApp):
@@ -139,7 +30,20 @@ class RLMA(MDFloatLayout, MDApp):
         self.title = "RLMA"
         self.theme_cls.primary_palette = "Gray"
         self.theme_cls.accent_palette = "Red"
-        self.root = Builder.load_string(root_kv)
+        # Load all .kv files from gui/kv_file
+        for file in (RLMAPATH / "gui" / "kv_files").iterdir():
+            # Check if the file is kv file
+            if file.suffix == ".kv":
+                try:
+                    # try to Load file
+                    if file.stem == "rlma":
+                        # assign self.root
+                        self.root = Builder.load_file(str(file))
+                    else:
+                        Builder.load_file(str(file))
+                except Exception as error:
+                    logger.critical("An error occured %s", error)
+                    raise
 
     def on_start(self):
         from core.config import RlmaConfig
@@ -172,10 +76,7 @@ class RLMA(MDFloatLayout, MDApp):
         :param instance_tab_label: <kivymd.uix.tab.MDTabsLabel object>;
         :param tab_text: text or name icon of tab;
         """
-
-        if instance_tabs.ids.carousel.slides.index(instance_tab) == (
-            len(instance_tabs.ids.carousel.slides) - 1
-        ):
+        if instance_tab.tab_alias == "edit":
             self.library.categoriesDialog.open()
 
     def refresh_callback(self, *args):
