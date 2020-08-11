@@ -9,13 +9,14 @@ from kivy.clock import Clock
 from kivy.config import ConfigParser
 from kivy.factory import Factory
 from kivy.network.urlrequest import UrlRequest
-from kivy.properties import StringProperty
+from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.scrollview import ScrollView
-from kivymd.app import App
+from kivymd.app import MDApp
+from kivy.app import App
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
 from kivymd.toast import toast
-from kivymd.uix.boxlayout import BoxLayout
+from kivymd.uix.boxlayout import MDBoxLayout
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog
@@ -23,6 +24,7 @@ from kivymd.uix.list import OneLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.tab import MDTabsBase
+from kivymd.uix.screen import MDScreen
 from validator_collection import checkers
 
 from utils import RLMAPATH, request_headers
@@ -52,10 +54,14 @@ class LibraryItem(MDCard):
         # self.update()
 
     def on_press(self, *args, **kwargs):
+        app = MDApp.get_running_app()
+
         if self.text == "LibraryItem":
             pass
         else:
-            logger.debug(self.text)
+            logger.debug("Opening %s", self.text)
+            app.root.add_widget(LibraryItemScreen(iten_instance=self))
+            app.root.current = "library_item_screen"
 
     def item_set(
         self,
@@ -240,7 +246,7 @@ class Library:
         Clock.schedule_interval(partial(self._save_item, -1), 5)
 
     def do_library(self, refresh=False):
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         logger.info(f"Building Library")
         # from JSON
         if self.json:
@@ -296,6 +302,7 @@ class Library:
         tabs_root.add_widget(
             LibraryCategory(
                 text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
+                tab_alias="edit",
             )
         )
 
@@ -303,7 +310,7 @@ class Library:
         self._save_library()
 
     def add_item(self, link, type_):
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         logger.debug(f"-> called {link},{type_}")
         for item in self.LibraryItems:
             if link == item.scraper.link:
@@ -410,7 +417,7 @@ class Library:
 
     def add_category(self, *args, **kwargs):
         logger.debug("-> called")
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         dialog = MDDialog(
             title="Add New Category",
             content_cls=DialogMDTextField(hint_text="Enter New Category"),
@@ -438,7 +445,7 @@ class Library:
 
     def del_category(self, instance):
         logger.debug("-> called")
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         Clock.schedule_once(self.categoriesDialog.dismiss)
         if self.active_check != None:
             root_tab = app.root.ids.tabs_
@@ -455,7 +462,7 @@ class Library:
         Clock.schedule_once(self.categoriesDialog.open)
 
     def _ok_add_category_dialog(self, instance):
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         Clock.schedule_once(self.categoriesDialog.dismiss)
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
@@ -490,7 +497,7 @@ class Library:
         Clock.schedule_once(self.categoriesDialog.open)
 
     def add_item_dialog(self):
-        app = App.get_running_app()
+        app = MDApp.get_running_app()
         menu_items = [
             {"icon": "book-alphabet", "text": "LN"},
             {"icon": "book", "text": "Manga"},
@@ -565,6 +572,7 @@ class Library:
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
+    tab_alias = StringProperty()
     """category class for Library"""
 
 
@@ -581,11 +589,15 @@ class LibraryCategoryDialogItem(OneLineAvatarIconListItem):
                 check.active = False
 
 
-class DialogMDTextField(BoxLayout):
+class DialogMDTextField(MDBoxLayout):
     """DialogMDTextField"""
 
     hint_text = StringProperty("")
 
 
-class AddItemDialog(BoxLayout):
+class AddItemDialog(MDBoxLayout):
     hint_text = StringProperty("")
+
+
+class LibraryItemScreen(MDBoxLayout, MDScreen):
+    iten_instance = ObjectProperty()
