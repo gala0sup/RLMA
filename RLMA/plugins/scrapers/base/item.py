@@ -33,7 +33,11 @@ class about_dict(object):
             "Release": None,
             "Updated": None,
             "Summary": None,
+            "extra": None,
         }
+
+    def __str__(self):
+        return self.dict_.__str__()
 
     def __setitem__(self, key, value):
         if key not in self.dict_.keys():
@@ -78,6 +82,9 @@ class chapter_dict(object):
 
     def __init__(self):
         self.dict_ = {}
+
+    def __str__(self):
+        return self.dict_.__str__()
 
     def __setitem__(self, key, value):
         if type(value) == dict:
