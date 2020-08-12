@@ -179,6 +179,7 @@ class Base:
                     self.link,
                     debug=True,
                     on_success=self.UrlRequest_success,
+                    on_progress=self.UrlRequest_progress,
                     req_headers=request_headers,
                 )
                 if not wait:
@@ -353,3 +354,6 @@ class Base:
 
     def UrlRequest_success(self, req, result):
         self._parse_webpage(req=req, result=result)
+
+    def UrlRequest_progress(self, req, current_size, total_size):
+        logger.debug("getting %s ....", self.link)
