@@ -25,15 +25,15 @@ class NotInitializedError(Exception):
 class about_dict(object):
     def __init__(self):
         self.dict_ = {
-            "CoverImage": None,
-            "Name": None,
-            "Chapters": None,
-            "Author": None,
-            "Status": None,
-            "Release": None,
-            "Updated": None,
-            "Summary": None,
-            "extra": None,
+            "CoverImage": "",
+            "Name": "",
+            "Chapters": int(),
+            "Author": "",
+            "Status": "",
+            "Release": "",
+            "Updated": "",
+            "Summary": "",
+            "extra": "",
         }
 
     def __str__(self):
@@ -166,12 +166,34 @@ class Base:
         self.LibraryItemInstance = LibraryItemInstance
         self.wait = wait
 
-    def _get_webpage(self, wait=False):
+    def _get_webpage(self, wait=False, link=None, get_chapter_list=False):
         if not self.initialized:
             logger.error("class not Initialised")
             raise NotInitializedError(
                 "class not Initialised Try calling get_info('link')"
             )
+        elif get_chapter_list == True:
+            try:
+                logger.debug("getting webpage (%s)", link)
+                self.webpage = UrlRequest(
+                    url=link,
+                    debug=True,
+                    on_success=self._set_chapter_list,
+                    on_error=self.UrlRequest_error,
+                    on_failure=self.UrlRequest_failure,
+                    req_headers=request_headers,
+                )
+                if not wait:
+                    if self.wait:
+                        self.webpage.wait()
+                else:
+                    self.webpage.wait()
+            except Exception as error:
+                logger.error(error)
+                logger.warning(
+                    "There was some Problem in getting the webpage (%s)", self.link
+                )
+
         else:
             try:
                 logger.debug("getting webpage (%s)", self.link)
@@ -180,6 +202,8 @@ class Base:
                     debug=True,
                     on_success=self.UrlRequest_success,
                     on_progress=self.UrlRequest_progress,
+                    on_error=self.UrlRequest_error,
+                    on_failure=self.UrlRequest_failure,
                     req_headers=request_headers,
                 )
                 if not wait:
@@ -200,7 +224,7 @@ class Base:
                         self.webpage.resp_status,
                     )
 
-    def _parse_webpage(self, req, result):
+    def _parse_webpage(self, req, result, custom=False):
         if not self.initialized:
             logger.error("class not Initialised")
             raise NotInitializedError(
@@ -208,10 +232,16 @@ class Base:
             )
         else:
             try:
-                logger.debug("prasing webpage (%s)", self.link)
-                self.prased_webpage = BeautifulSoup(result, "lxml")
-                logger.debug("prased webpage")
-                self._set_info()
+                if not custom:
+                    logger.debug("prasing webpage (%s)", self.link)
+                    self.prased_webpage = BeautifulSoup(result, "lxml")
+                    logger.debug("prased webpage")
+                    self._set_info()
+                else:
+                    logger.debug("prasing webpage (%s)", self.link)
+                    prased_webpage = BeautifulSoup(result, "lxml")
+                    logger.debug("prased webpage")
+                    return prased_webpage
             except Exception as error:
                 logger.error(error)
                 logger.error("unable to prase webpage")
@@ -324,6 +354,12 @@ class Base:
         except KeyError as error:
             logger.error(error)
 
+    def _get_chapter_list(self):
+        pass
+
+    def _set_chapter_list(self, req, result):
+        pass
+
     def to_json(self, update=False):
         if update:
             self.get_info()
@@ -353,7 +389,23 @@ class Base:
     # Callbacks are defined here
 
     def UrlRequest_success(self, req, result):
-        self._parse_webpage(req=req, result=result)
+        if req.resp_status == 200:
+            self._parse_webpage(req=req, result=result)
+        else:
+            Snackbar(text="Website Down Please Wait ...", duration=3).show()
+            logger.debug("failed getting  status code %s ", req.resp_status)
 
     def UrlRequest_progress(self, req, current_size, total_size):
-        logger.debug("getting %s ....", self.link)
+        if total_size > 0:
+            logger.debug(f"got {(current_size / total_size)*100} %")
+        logger.debug("getting %s .... ", self.link)
+
+    def UrlRequest_error(self, req, error):
+        logger.debug("error getting %s", req.url)
+        logger.debug("%s", error)
+
+    def UrlRequest_failure(self, req, result):
+        if int(req.resp_status) != 200:
+            Snackbar(text="Website Down Please Wait ...", duration=3).show()
+        logger.debug("failed getting  status code %s ", req.resp_status)
+
