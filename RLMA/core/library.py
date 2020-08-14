@@ -4,6 +4,7 @@ import logging
 import pathlib
 from functools import partial
 from random import choice
+import traceback
 
 from kivy.clock import Clock
 from kivy.config import ConfigParser
@@ -23,8 +24,10 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.list import OneLineAvatarIconListItem
 from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.snackbar import Snackbar
+from kivymd.uix.list import TwoLineRightIconListItem
 from kivymd.uix.tab import MDTabsBase
 from kivymd.uix.screen import MDScreen
+from kivy.animation import Animation
 from validator_collection import checkers
 
 from utils import RLMAPATH, request_headers
@@ -61,6 +64,20 @@ class LibraryItem(MDCard):
         else:
             logger.debug("Opening %s", self.text)
             app.root.add_widget(LibraryItemScreen(iten_instance=self))
+            for i in app.root.screens:
+                if i.name == "library_item_screen":
+                    for tab in i.ids.tabs.get_tab_list():
+                        if tab.tab.alias == "chapter_list_tab":
+                            data = []
+                            for key, value in self.scraper.chapter_list.items():
+                                if len(next(iter(value))) == 0:
+                                    # empty chapter name
+                                    data.append({"text": "Chapter " + str(key)})
+                                else:
+                                    data.append(
+                                        {"text": f"{key} : {next(iter(value))}"}
+                                    )
+                            tab.tab.data = data
             app.root.current = "library_item_screen"
 
     def item_set(
@@ -116,7 +133,13 @@ class LibraryItem(MDCard):
 
     def item_update(self):
         logger.debug("-> called")
-        self.scraper.get_info()
+        try:
+            self.scraper.get_info()
+        except:
+            Snackbar(
+                text="Scraper outdated please wait for Update..", duration=3
+            ).show()
+            print(traceback.format_exc())
         self.init = True
         self.updated = True
         self.saved = False
@@ -146,6 +169,7 @@ class LibraryItem(MDCard):
                 self.scraper.about["CoverImage"], file_path=cover_image_path,
             )
         logger.debug(f"added {self.text} to library in category {self.categories[0]}")
+        self.scraper._get_chapter_list()
         self.updated = True
         self.set = True
 
@@ -326,7 +350,7 @@ class Library:
             LibraryItemDir=self.LibraryPaths[0],
         )
 
-        toast("adding item ...")
+        toast(text="adding item ...", duration=0.5)
         tmp_LibraryItem.item_update()
         self.LibraryItems.append(tmp_LibraryItem)
         tab_list = app.root.ids.tabs_.get_tab_list()
@@ -496,7 +520,7 @@ class Library:
         Clock.schedule_once(self._save_library)
         Clock.schedule_once(self.categoriesDialog.open)
 
-    def add_item_dialog(self):
+    def add_item_dialog(self, *args):
         app = MDApp.get_running_app()
         menu_items = [
             {"icon": "book-alphabet", "text": "LN"},
@@ -525,14 +549,14 @@ class Library:
                 ),
             ],
         )
-        a = Factory.AddItemDialog()
+        # a = Factory.AddItemDialog()
 
-        self.typedialog = MDDropdownMenu(
-            caller=a.ids.drop_item,
-            items=menu_items,
-            callback=self._ok_add_item_dialog,
-            width_mult=4,
-        )
+        # self.typedialog = MDDropdownMenu(
+        #     caller=a.ids.drop_item,
+        #     items=menu_items,
+        #     callback=self._ok_add_item_dialog,
+        #     width_mult=4,
+        # )
         dialog.open()
 
     def _ok_add_item_dialog(self, instance):
@@ -601,3 +625,25 @@ class AddItemDialog(MDBoxLayout):
 
 class LibraryItemScreen(MDBoxLayout, MDScreen):
     iten_instance = ObjectProperty()
+
+    def scrollbar_callback(self, instance, scrolling=False):
+        if scrolling:
+            if instance.scrolling_event is not None:
+                instance.scrolling_event.cancel()
+            Animation.cancel_all(instance, "bar_margin")
+            Animation(bar_margin=0, duration=0).start(instance)
+        elif not scrolling:
+            if instance.scrolling_event is not None:
+                instance.scrolling_event.cancel()
+            Animation.cancel_all(instance, "bar_margin")
+
+            def scrollbar_animation(*args):
+                Animation(
+                    bar_margin=-instance.bar_width, duration=0.2, t="in_quad"
+                ).start(instance)
+
+            instance.scrolling_event = Clock.schedule_once(scrollbar_animation, 2)
+
+
+class ChapterListItem(TwoLineRightIconListItem):
+    text = StringProperty()
