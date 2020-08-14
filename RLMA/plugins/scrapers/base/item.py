@@ -355,9 +355,10 @@ class Base:
             logger.error(error)
 
     def _get_chapter_list(self):
+        # call when a new UrlRequest is needed to complete chapter list
         pass
 
-    def _set_chapter_list(self, req, result):
+    def _set_chapter_list(self, req=None, result=None):
         pass
 
     def to_json(self, update=False):
