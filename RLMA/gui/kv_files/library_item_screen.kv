@@ -82,13 +82,13 @@
                             size_hint : (None,0.9)
                             width : dp(130)
                             MDLabel:
-                                text : "Author : "+str(root.item_instance.scraper.about["Author"])
+                                text : "Author : "+ str(root.item_instance.scraper.about["Author"]) if len(root.item_instance.scraper.about["Author"]) else "N/A"
                             MDLabel:
-                                text : "Status : " + str(root.item_instance.scraper.about["Status"])
+                                text : "Status : " + str(root.item_instance.scraper.about["Status"]) if len(str(root.item_instance.scraper.about["Status"])) else "N/A"
                             MDLabel:
-                                text : "Updated : "+str(root.item_instance.scraper.about["Updated"])
+                                text : "Updated : "+str(root.item_instance.scraper.about["Updated"]) if len(str(root.item_instance.scraper.about["Updated"])) else "N/A"
                             MDLabel:
-                                text : "Chapters : " + str(root.item_instance.scraper.about["Chapters"])
+                                text : "Chapters : " + str(root.item_instance.scraper.about["Chapters"]) if len(str(root.item_instance.scraper.about["Chapters"])) else "N/A"
                     MDLabel:
                         text: root.item_instance.scraper.about["Summary"]
                         size_hint: (2,None)
