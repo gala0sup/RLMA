@@ -625,8 +625,10 @@ class AddItemDialog(MDBoxLayout):
 
 class LibraryItemScreen(MDBoxLayout, MDScreen):
     item_instance = ObjectProperty()
+    SpeedDialData = {"book-play": "Resume", "update": "Update"}
 
     def scrollbar_callback(self, instance, scrolling=False):
+        """Scrollbar Callback"""
         if scrolling:
             if instance.scrolling_event is not None:
                 instance.scrolling_event.cancel()
@@ -643,6 +645,17 @@ class LibraryItemScreen(MDBoxLayout, MDScreen):
                 ).start(instance)
 
             instance.scrolling_event = Clock.schedule_once(scrollbar_animation, 2)
+
+    def FloatingActionButton_callback(self, instance):
+        """MDFloatingActionButtonSpeedDial callback"""
+        icon = instance.icon
+        if icon == "book-play":
+            # resume or start new reading session
+            pass
+        elif icon == "update":
+            # Update current item info
+            self.item_instance.item_get_info()
+            Snackbar(text=f"Updating {self.item_instance.scraper.about['Name']}").show()
 
 
 class ChapterListItem(TwoLineRightIconListItem):

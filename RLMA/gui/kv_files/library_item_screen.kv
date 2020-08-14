@@ -97,3 +97,9 @@
                 root.scrollbar_callback(self,scrolling=True)
             on_scroll_stop:
                 root.scrollbar_callback(self,scrolling=False)
+
+        MDFloatingActionButtonSpeedDial:
+            id : FloatingDial
+            data : root.SpeedDialData
+            callback : root.FloatingActionButton_callback
+            rotation_root_button: True
