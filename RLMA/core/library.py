@@ -615,8 +615,6 @@ class AddItemDialog(MDBoxLayout):
 
 class LibraryItemScreen(MDBoxLayout, MDScreen):
     item_instance = ObjectProperty()
-    SpeedDialData = {"book-play": "Resume", "update": "Update"}
-
     def scrollbar_callback(self, instance, scrolling=False):
         """Scrollbar Callback"""
         if scrolling:
