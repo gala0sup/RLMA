@@ -108,7 +108,6 @@ class RLMA(MDFloatLayout, MDApp):
         if icon == "plus":
             """Call Add_item Dialog in library"""
             self.library.add_item_dialog()
-
         elif icon == "all-inclusive":
             """update whole library"""
             pass
