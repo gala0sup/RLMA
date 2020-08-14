@@ -71,6 +71,7 @@ class Scraper(Base):
                     self.about["Status"] = tr.find("td").find("a").get_text()
 
             self.LibraryItemInstance.item_set_info()
+            self._set_chapter_list()
         except Exception as error:
             logger.error(error)
             logger.debug("Scraper outdated")
