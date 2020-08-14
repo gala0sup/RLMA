@@ -26,6 +26,7 @@ from kivymd.uix.menu import MDDropdownMenu
 from kivymd.uix.snackbar import Snackbar
 from kivymd.uix.list import TwoLineRightIconListItem
 from kivymd.uix.tab import MDTabsBase
+from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.screen import MDScreen
 from kivy.animation import Animation
 from validator_collection import checkers
@@ -37,7 +38,7 @@ from .scraper import Scraper
 logger = logging.getLogger("RLMA")
 
 
-class LibraryItem(MDCard):
+class LibraryItem(MDCard, TouchBehavior):
     """class for LibraryItem """
 
     source = StringProperty()
@@ -79,6 +80,9 @@ class LibraryItem(MDCard):
                                     )
                             tab.tab.data = data
             app.root.current = "library_item_screen"
+
+    def on_long_touch(self, *args):
+        logger.debug("Long Touch")
 
     def item_set(
         self, json_data=None, link=None, type_=None, wait=False, LibraryItemDir=None,
@@ -640,7 +644,7 @@ class LibraryItemScreen(MDBoxLayout, MDScreen):
             pass
         elif icon == "update":
             # Update current item info
-            self.item_instance.item_get_info()
+            self.item_instance.item_update()
             Snackbar(text=f"Updating {self.item_instance.scraper.about['Name']}").show()
 
 
