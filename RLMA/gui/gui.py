@@ -28,6 +28,7 @@ class RLMA(MDFloatLayout, MDApp):
 
     def build(self):
         self.title = "RLMA"
+        self.theme_cls.theme_style = "Dark"
         self.theme_cls.primary_palette = "Gray"
         self.theme_cls.accent_palette = "Red"
         # Load all .kv files from gui/kv_file
