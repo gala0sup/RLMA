@@ -63,7 +63,7 @@ class LibraryItem(MDCard):
             pass
         else:
             logger.debug("Opening %s", self.text)
-            app.root.add_widget(LibraryItemScreen(iten_instance=self))
+            app.root.add_widget(LibraryItemScreen(item_instance=self))
             for i in app.root.screens:
                 if i.name == "library_item_screen":
                     for tab in i.ids.tabs.get_tab_list():
@@ -81,20 +81,14 @@ class LibraryItem(MDCard):
             app.root.current = "library_item_screen"
 
     def item_set(
-        self,
-        json_data=None,
-        link=None,
-        type_=None,
-        wait=False,
-        LibraryItemInstance=None,
-        LibraryItemDir=None,
+        self, json_data=None, link=None, type_=None, wait=False, LibraryItemDir=None,
     ):
         self.json_data = json_data
         try:
             self.dir = pathlib.Path(LibraryItemDir)
             if self.json_data:
                 scraper_init = Scraper(
-                    LibraryItemInstance=LibraryItemInstance,
+                    LibraryItemInstance=self,
                     link=self.json_data["link"],
                     type_=self.json_data["type_"],
                     wait=wait,
@@ -117,10 +111,7 @@ class LibraryItem(MDCard):
                 self.updated = False
             else:
                 scraper_init = Scraper(
-                    LibraryItemInstance=LibraryItemInstance,
-                    link=link,
-                    type_=type_,
-                    wait=wait,
+                    LibraryItemInstance=self, link=link, type_=type_, wait=wait,
                 )
                 self.scraper = scraper_init.getScraper()
                 self.updated = True
@@ -303,9 +294,7 @@ class Library:
                             tmp_item = LibraryItem()
                             tmp_item.item_add_category(self.categories[0])
                             tmp_item.item_set(
-                                json_data=JSON,
-                                LibraryItemInstance=tmp_item,
-                                LibraryItemDir=path,
+                                json_data=JSON, LibraryItemDir=path,
                             )
                             self.LibraryItems.append(tmp_item)
                         except Exception as e:
@@ -344,10 +333,7 @@ class Library:
         tmp_LibraryItem = LibraryItem()
         tmp_LibraryItem.item_add_category(self.categories[0])
         tmp_LibraryItem.item_set(
-            LibraryItemInstance=tmp_LibraryItem,
-            link=link,
-            type_=type_,
-            LibraryItemDir=self.LibraryPaths[0],
+            link=link, type_=type_, LibraryItemDir=self.LibraryPaths[0],
         )
 
         toast(text="adding item ...", duration=0.5)
