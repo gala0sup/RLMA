@@ -41,6 +41,8 @@
 <LibraryItemScreen>:
     id : library_item_screen
     name : "library_item_screen"
+    on_leave:
+        app.root.remove_widget(self)
     MDTabs:
         id : tabs
         on_tab_switch : pass
@@ -50,8 +52,7 @@
                 padding : "25dp"
                 spacing : dp(50)
                 MDFloatingActionButton:
-                    on_press : app.root.current = app.root.previous()
-                    on_press : app.root.remove_widget(app.root.screens[-1])
+                    on_press : app.root.current = "main"
                     pos_hint : {'top':1,'right':0}
                     icon : "keyboard-backspace"
                     md_bg_color: app.theme_cls.primary_color
