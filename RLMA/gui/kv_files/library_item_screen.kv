@@ -1,6 +1,7 @@
 #:kivy 1.11.1
 <AboutTab@ScrollView+MDTabsBase>:
     text : "About"
+    alias : "about"
     do_scroll_x: False
     effect_cls : "OpacityScrollEffect"
     scroll_type : ["bars", "content"]
@@ -8,8 +9,11 @@
     bar_color : app.theme_cls.primary_dark
     bar_inactive_color : app.theme_cls.primary_color
     bar_width : 10
-<ChapterListTab@ScrollView+MDTabsBase>:
+
+<ChapterListTab@RecycleView+MDTabsBase>:
+    viewclass : "ChapterListItem"
     text : "Chapter List"
+    alias : "chapter_list_tab"
     do_scroll_x: False
     effect_cls : "OpacityScrollEffect"
     scroll_type : ["bars", "content"]
@@ -17,20 +21,22 @@
     bar_color : app.theme_cls.primary_dark
     bar_inactive_color : app.theme_cls.primary_color
     bar_width : 10
-    MDStackLayout:
-        adaptive_height : True
-        MDLabel:
-            text: "1"
-        MDLabel:
-            text: "1"
-        MDLabel:
-            text: "1"
-        MDLabel:
-            text: "1"
-        MDLabel:
-            text: "1"
-        MDLabel:
-            text: "1"
+    bar_margin : -self.bar_width
+    scrolling_event : None
+    RecycleBoxLayout:
+        id : chapter_list_layout 
+        orientation : 'vertical'
+        default_size: None, dp(50)
+        default_size_hint: 1, None
+        size_hint_y: None
+        height: self.minimum_height
+
+<ChapterListItem>:
+    text: "List Item"
+    secondary_text : " "
+    pos_hint: {"center_y": .5}
+    IconRightWidget:
+        icon: "download"
 
 <LibraryItemScreen>:
     id : library_item_screen
@@ -86,3 +92,8 @@
                         text: root.iten_instance.scraper.about["Summary"]
                         size_hint: (2,None)
                         height: self.texture_size[1]
+        ChapterListTab:
+            on_scroll_start:
+                root.scrollbar_callback(self,scrolling=True)
+            on_scroll_stop:
+                root.scrollbar_callback(self,scrolling=False)
