@@ -20,12 +20,6 @@ logger = logging.getLogger("RLMA")
 
 
 class RLMA(MDFloatLayout, MDApp):
-    data = {
-        "update": "Update Category",
-        "all-inclusive": "Update Library",
-        "plus": "Add Item",
-    }
-
     def build(self):
         self.title = "RLMA"
         self.theme_cls.theme_style = "Dark"
