@@ -624,7 +624,7 @@ class AddItemDialog(MDBoxLayout):
 
 
 class LibraryItemScreen(MDBoxLayout, MDScreen):
-    iten_instance = ObjectProperty()
+    item_instance = ObjectProperty()
 
     def scrollbar_callback(self, instance, scrolling=False):
         if scrolling:

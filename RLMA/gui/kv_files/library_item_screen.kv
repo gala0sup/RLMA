@@ -72,7 +72,7 @@
                             radius: [(15 / self.width) * 100, ]                    
                             FitImage:
                                 id : item_image
-                                source: root.iten_instance.source
+                                source: root.item_instance.source
                                 size_hint: None, None
                                 size: card.size
                                 radius : card.radius
@@ -81,15 +81,15 @@
                             size_hint : (None,0.9)
                             width : dp(130)
                             MDLabel:
-                                text : "Author : "+str(root.iten_instance.scraper.about["Author"])
+                                text : "Author : "+str(root.item_instance.scraper.about["Author"])
                             MDLabel:
-                                text : "Status : " + str(root.iten_instance.scraper.about["Status"])
+                                text : "Status : " + str(root.item_instance.scraper.about["Status"])
                             MDLabel:
-                                text : "Updated : "+str(root.iten_instance.scraper.about["Updated"])
+                                text : "Updated : "+str(root.item_instance.scraper.about["Updated"])
                             MDLabel:
-                                text : "Chapters : " + str(root.iten_instance.scraper.about["Chapters"])
+                                text : "Chapters : " + str(root.item_instance.scraper.about["Chapters"])
                     MDLabel:
-                        text: root.iten_instance.scraper.about["Summary"]
+                        text: root.item_instance.scraper.about["Summary"]
                         size_hint: (2,None)
                         height: self.texture_size[1]
         ChapterListTab:
