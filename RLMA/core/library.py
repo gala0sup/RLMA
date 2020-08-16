@@ -30,7 +30,7 @@ from kivymd.uix.behaviors import TouchBehavior
 from kivymd.uix.screen import MDScreen
 from kivy.animation import Animation
 from validator_collection import checkers
-
+from kivymd.uix.expansionpanel import MDExpansionPanel, MDExpansionPanelOneLine
 from utils import RLMAPATH, request_headers
 
 from .scraper import Scraper
@@ -615,6 +615,19 @@ class AddItemDialog(MDBoxLayout):
 
 class LibraryItemScreen(MDBoxLayout, MDScreen):
     item_instance = ObjectProperty()
+
+    def on_pre_enter(self):
+        expansionPanel = MDExpansionPanel(
+            icon="card-text-outline",
+            content=panel_content(text=self.item_instance.scraper.about["Summary"]),
+            panel_cls=MDExpansionPanelOneLine(text="Summary"),
+        )
+
+        app = MDApp.get_running_app()
+        for screen in app.root.screens:
+            if screen.name == "library_item_screen":
+                screen.ids.about_box.add_widget(expansionPanel)
+
     def scrollbar_callback(self, instance, scrolling=False):
         """Scrollbar Callback"""
         if scrolling:
@@ -644,6 +657,10 @@ class LibraryItemScreen(MDBoxLayout, MDScreen):
             # Update current item info
             self.item_instance.item_update()
             Snackbar(text=f"Updating {self.item_instance.scraper.about['Name']}").show()
+
+
+class panel_content(MDBoxLayout):
+    text = StringProperty("")
 
 
 class ChapterListItem(TwoLineRightIconListItem):
