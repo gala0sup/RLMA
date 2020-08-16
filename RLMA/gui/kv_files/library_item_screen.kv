@@ -1,4 +1,13 @@
 #:kivy 1.11.1
+<panel_content>:
+    size_hint: (2,None)
+    height: self.minimum_height
+
+    MDLabel:
+        size_hint: (1,None)
+        height: self.texture_size[1]
+        text: root.text
+
 <AboutTab@ScrollView+MDTabsBase>:
     text : "About"
     alias : "about"
@@ -61,7 +70,7 @@
                     orientation: "vertical"
                     pos_hint: {"top":1,"right":0}
                     adaptive_size : True
-                    spacing : dp(70)
+                    spacing : dp(30)
                     MDBoxLayout:
                         spacing : dp(20)
                         adaptive_size: True
@@ -89,10 +98,6 @@
                                 text : "Updated : "+ (str(root.item_instance.scraper.about["Updated"]) if len(str(root.item_instance.scraper.about["Updated"])) else "N/A")
                             MDLabel:
                                 text : "Chapters : " + (str(root.item_instance.scraper.about["Chapters"]) if len(str(root.item_instance.scraper.about["Chapters"])) else "N/A")
-                    MDLabel:
-                        text: root.item_instance.scraper.about["Summary"]
-                        size_hint: (2,None)
-                        height: self.texture_size[1]
         ChapterListTab:
             on_scroll_start:
                 root.scrollbar_callback(self,scrolling=True)
