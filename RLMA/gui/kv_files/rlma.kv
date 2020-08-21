@@ -10,15 +10,10 @@ ScreenManager:
                 title: app.title
                 elevation: 10
                 md_bg_color: app.theme_cls.primary_color
-
-            MDScrollViewRefreshLayout:
-                id : refresh_layout
-                refresh_callback: app.refresh_callback
-                root_layout : app
-                MDTabs:
-                    id: tabs_
-                    lock_swiping : True
-                    on_tab_switch: app.on_tab_switch(*args)
+            MDTabs:
+                id: tabs_
+                lock_swiping : True
+                on_tab_switch: app.on_tab_switch(*args)
 
 
         MDFloatingActionButtonSpeedDial:
