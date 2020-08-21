@@ -12,12 +12,14 @@ from kivy.factory import Factory
 from kivy.network.urlrequest import UrlRequest
 from kivy.properties import StringProperty, ObjectProperty
 from kivy.uix.scrollview import ScrollView
+from kivy.metrics import dp
 from kivymd.app import MDApp
 from kivy.app import App
 from kivymd.font_definitions import fonts
 from kivymd.icon_definitions import md_icons
 from kivymd.toast import toast
 from kivymd.uix.boxlayout import MDBoxLayout
+from kivymd.uix.stacklayout import MDStackLayout
 from kivymd.uix.button import MDFlatButton, MDRaisedButton, MDRectangleFlatButton
 from kivymd.uix.card import MDCard
 from kivymd.uix.dialog import MDDialog
@@ -38,12 +40,13 @@ from .scraper import Scraper
 logger = logging.getLogger("RLMA")
 
 
-class LibraryItem(MDCard, TouchBehavior):
+class LibraryItem(MDCard):
     """class for LibraryItem """
 
     source = StringProperty()
     shadow = StringProperty(str(RLMAPATH / "gui" / "img" / "shadow.png"))
     text = StringProperty("LibraryItem")
+    selection_on = False
 
     def __init__(self, *args, **kwargs):
         super().__init__(**kwargs)
@@ -54,35 +57,34 @@ class LibraryItem(MDCard, TouchBehavior):
         self.updated = False
         self.saved = False
         self.categories = []
+        self.long_touch = False
         self.dir = None
         # self.update()
 
-    def on_press(self, *args, **kwargs):
-        app = MDApp.get_running_app()
-
-        if self.text == "LibraryItem":
-            pass
-        else:
-            logger.debug("Opening %s", self.text)
-            app.root.add_widget(LibraryItemScreen(item_instance=self))
-            for i in app.root.screens:
-                if i.name == "library_item_screen":
-                    for tab in i.ids.tabs.get_tab_list():
-                        if tab.tab.alias == "chapter_list_tab":
-                            data = []
-                            for key, value in self.scraper.chapter_list.items():
-                                if len(next(iter(value))) == 0:
-                                    # empty chapter name
-                                    data.append({"text": "Chapter " + str(key)})
-                                else:
-                                    data.append(
-                                        {"text": f"{key} : {next(iter(value))}"}
-                                    )
-                            tab.tab.data = data
-            app.root.current = "library_item_screen"
-
-    def on_long_touch(self, *args):
-        logger.debug("Long Touch")
+    def on_release(self, *args, **kwargs):
+        if not LibraryItem.selection_on:
+            self.opacity = 1
+            app = MDApp.get_running_app()
+            if self.text == "LibraryItem":
+                pass
+            else:
+                logger.debug("Opening %s", self.text)
+                app.root.add_widget(LibraryItemScreen(item_instance=self))
+                for i in app.root.screens:
+                    if i.name == "library_item_screen":
+                        for tab in i.ids.tabs.get_tab_list():
+                            if tab.tab.alias == "chapter_list_tab":
+                                data = []
+                                for key, value in self.scraper.chapter_list.items():
+                                    if len(next(iter(value))) == 0:
+                                        # empty chapter name
+                                        data.append({"text": "Chapter " + str(key)})
+                                    else:
+                                        data.append(
+                                            {"text": f"{key} : {next(iter(value))}"}
+                                        )
+                                tab.tab.data = data
+                app.root.current = "library_item_screen"
 
     def item_set(
         self, json_data=None, link=None, type_=None, wait=False, LibraryItemDir=None,
@@ -157,6 +159,7 @@ class LibraryItem(MDCard, TouchBehavior):
             / "info"
             / "CoverImage."
         ) + str(self.scraper.about["CoverImage"].split(".")[-1])
+        self.scraper._get_chapter_list()
 
         pathlib.Path(cover_image_path).touch(exist_ok=True)
         if self.source != cover_image_path:
@@ -586,8 +589,9 @@ class Library:
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
-    tab_alias = StringProperty()
     """category class for Library"""
+
+    tab_alias = StringProperty()
 
 
 class LibraryCategoryDialogItem(OneLineAvatarIconListItem):
