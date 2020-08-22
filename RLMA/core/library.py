@@ -61,6 +61,10 @@ class LibraryItem(MDCard):
         self.dir = None
         # self.update()
 
+    def on_press(self, *args, **kwargs):
+        if not LibraryItem.selection_on:
+            self.opacity = 0.1
+
     def on_release(self, *args, **kwargs):
         if not LibraryItem.selection_on:
             self.opacity = 1
