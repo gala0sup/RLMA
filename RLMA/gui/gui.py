@@ -31,11 +31,12 @@ class RLMA(MDFloatLayout, MDApp):
             if file.suffix == ".kv":
                 try:
                     # try to Load file
+                    kv = file.open(mode="rt", encoding="utf-8").read()
                     if file.stem == "rlma":
                         # assign self.root
-                        self.root = Builder.load_file(str(file))
+                        self.root = Builder.load_string(kv)
                     else:
-                        Builder.load_file(str(file))
+                        Builder.load_string(kv)
                 except Exception as error:
                     logger.critical("An error occured %s", error)
                     raise
@@ -72,31 +73,7 @@ class RLMA(MDFloatLayout, MDApp):
         :param tab_text: text or name icon of tab;
         """
         if instance_tab.tab_alias == "edit":
-            self.library.categoriesDialog.open()
-
-    def refresh_callback(self, *args):
-
-        logger.debug(f"-> called")
-
-        def refresh_callback(interval):
-            for obj in self.root.ids.tabs_.ids.carousel.slides:
-                obj.clear_widgets()
-
-            for obj in self.root.ids.tabs_.ids.tab_bar.walk():
-                if isinstance(obj, MDGridLayout):
-                    # logger.debug(i)
-                    obj.clear_widgets()
-
-            if self.x == 0:
-                self.x, self.y = 15, 30
-            else:
-                self.x, self.y = 0, 15
-
-            self.refresh_RLMA()
-
-            self.root.ids.refresh_layout.refresh_done()
-
-        Clock.schedule_once(refresh_callback, 1)
+            self.library.open_categoriesDialog()
 
     def FloatingActionButton_callback(self, instance):
         icon = instance.icon
