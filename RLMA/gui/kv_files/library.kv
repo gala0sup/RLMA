@@ -1,4 +1,25 @@
 #:kivy 1.11.1
+#:import font_path utils.font_path
+#:import Window kivy.core.window.Window
+#:import choice random.choice
+#:set kaomojiChoices ["(;¬_¬)","(；￣Д￣）","<(．＿．)>","¯\_(ツ)_/¯"]
+<CategoryLayout@MDStackLayout>:
+    id : LibraryCategoryLayout
+    adaptive_height : True
+    padding : dp(10), dp(10)
+    spacing : dp(10)
+<KaomojiLabel@FloatLayout>:
+    kaomoji : ""
+    MDLabel:
+        markup : True
+        theme_text_color : "Hint"
+        size_hint_x : 1
+        text_size: self.size
+        halign: 'center'
+        valign: 'middle'
+        font_name : str(font_path / "VLG.ttf")
+        kaomoji_size : int(Window.height / 10)
+        text : f"[size={self.kaomoji_size}][b]"+root.kaomoji+"[/b][/size]"
 
 <LibraryCategoryDialogItem>:
     on_release: root.set_icon(check)
@@ -46,8 +67,5 @@
     bar_color : app.theme_cls.primary_dark
     bar_inactive_color : app.theme_cls.primary_color
     bar_width : 10
-    MDStackLayout:
-        id : LibraryCategoryLayout
-        adaptive_height : True
-        padding : dp(10), dp(10)
-        spacing : dp(10)
+    KaomojiLabel:
+        kaomoji: choice(kaomojiChoices)
