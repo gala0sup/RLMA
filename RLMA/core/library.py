@@ -318,10 +318,17 @@ class Library:
 
         # add Item to Categories
         for tab in tabs_root.get_tab_list():
+            empty = True
             for Item in self.LibraryItems:
                 for category in Item.categories:
                     if tab.text == category:
-                        tab.tab.ids.LibraryCategoryLayout.add_widget(Item)
+                        if empty:
+                            # there is an item for this Category remove kaomoji
+                            layout = Factory.CategoryLayout()
+                            tab.tab.clear_widgets()
+                            tab.tab.add_widget(layout)
+                            empty = False
+                        tab.tab.children[0].add_widget(Item)
 
         tabs_root.add_widget(
             LibraryCategory(
@@ -354,7 +361,12 @@ class Library:
         for tab in tab_list:
             for category in tmp_LibraryItem.categories:
                 if tab.text == category:
-                    tab.tab.ids.LibraryCategoryLayout.add_widget(tmp_LibraryItem)
+                    if not "LibraryCategoryLayout" in tab.tab.ids:
+                        layout = Factory.CategoryLayout()
+                        tab.tab.clear_widgets()
+                        tab.tab.add_widget(layout)
+                    print(tab.tab.ids)
+                    # tab.tab.ids.LibraryCategoryLayout.add_widget(tmp_LibraryItem)
 
     def _save_item(self, index, *largs):
         if index >= 0:
@@ -492,11 +504,11 @@ class Library:
                     pass
                 else:
                     logger.debug(f"adding {text}")
-                    # get the Edit Category tab
-                    edit_category_tab = app.root.ids.tabs_.get_tab_list()[0]
 
                     # remove Edit Category tab
-                    app.root.ids.tabs_.remove_widget(edit_category_tab)
+                    app.root.ids.tabs_.remove_widget(
+                        app.root.ids.tabs_.get_tab_list()[0]
+                    )
 
                     # add new tab
                     app.root.ids.tabs_.add_widget(LibraryCategory(text=text))
@@ -505,15 +517,20 @@ class Library:
                     app.root.ids.tabs_.add_widget(
                         LibraryCategory(
                             text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
+                            tab_alias="edit",
+                        )
+                    )
+                    # switch to the new added tab
+                    Clock.schedule_once(
+                        lambda x: app.root.ids.tabs_.switch_tab(
+                            app.root.ids.tabs_.get_tab_list()[1]
                         )
                     )
 
-                    self.categories.append(str(text))
-                    self._make_categoriesDialog()
-                    self.added_cat = True
-
+        self.categories.append(str(text))
+        self._make_categoriesDialog()
+        self.added_cat = True
         self._close_dialog(instance=instance)
-
         Clock.schedule_once(self._save_library)
         Clock.schedule_once(self.categoriesDialog.open)
 
