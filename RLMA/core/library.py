@@ -366,7 +366,7 @@ class Library:
                         layout = Factory.CategoryLayout()
                         tab.tab.clear_widgets()
                         tab.tab.add_widget(layout)
-                    print(tab.tab.ids)
+                    tab.tab.children[0].add_widget(tmp_LibraryItem)
                     # tab.tab.ids.LibraryCategoryLayout.add_widget(tmp_LibraryItem)
 
     def _save_item(self, index, *largs):
@@ -581,9 +581,9 @@ class Library:
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
                 url = obj.content_cls.ids.textfield.text.replace(" ", "")
-                itemtype = obj.content_cls.ids.drop_item.text
+                itemtype = obj.content_cls.ids.drop_item.text.lower()
                 if checkers.is_url(url):
-                    if itemtype.lower() not in self.ItemTypes:
+                    if itemtype not in self.ItemTypes:
                         self.itemtype = "ln"
                     if self.add_item(link=url, type_=itemtype) == -1:
                         toast("Item Already in Library", duration=0.5)
