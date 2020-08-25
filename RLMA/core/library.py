@@ -257,6 +257,7 @@ class Library:
         self.typedialog = None
         self.itemtype = None
         self.itemurl = None
+        self.temp = None
         for path in self.LibraryPaths:
             logger.debug(path)
             json_file = pathlib.Path(path) / "Library.json"
@@ -536,6 +537,7 @@ class Library:
 
     def add_item_dialog(self, *args):
         app = MDApp.get_running_app()
+        self.temp = Factory.AddItemDialog(hint_text="Enter New Item Link")
         menu_items = [
             {"icon": "book-alphabet", "text": "LN"},
             {"icon": "book", "text": "Manga"},
@@ -543,7 +545,7 @@ class Library:
         ]
         dialog = MDDialog(
             title="Add New Item",
-            content_cls=AddItemDialog(hint_text="Enter New Item Link"),
+            content_cls=self.temp,
             type="custom",
             buttons=[
                 MDRectangleFlatButton(
@@ -562,43 +564,34 @@ class Library:
                     on_release=self._ok_add_item_dialog,
                 ),
             ],
+            on_pre_dismiss=self._close_add_item_dialog,
         )
-        # a = Factory.AddItemDialog()
-
-        # self.typedialog = MDDropdownMenu(
-        #     caller=a.ids.drop_item,
-        #     items=menu_items,
-        #     callback=self._ok_add_item_dialog,
-        #     width_mult=4,
-        # )
         dialog.open()
+        self.typedialog = MDDropdownMenu(
+            caller=self.temp.ids.drop_item,
+            items=menu_items,
+            position="bottom",
+            width_mult=3,
+        )
+        self.typedialog.bind(on_release=self._typedialog_on_release)
 
     def _ok_add_item_dialog(self, instance):
         logger.debug("-> called")
 
         for obj in instance.walk_reverse():
             if isinstance(obj, MDDialog):
-                url = obj.content_cls.ids.textfield.text
+                url = obj.content_cls.ids.textfield.text.replace(" ", "")
+                itemtype = obj.content_cls.ids.drop_item.text
                 if checkers.is_url(url):
-                    self.itemurl = url
-                    if self.itemtype not in self.ItemTypes:
+                    if itemtype.lower() not in self.ItemTypes:
                         self.itemtype = "ln"
-                    if self.add_item(link=self.itemurl, type_=self.itemtype) == -1:
-                        toast("Item Already in Library")
+                    if self.add_item(link=url, type_=itemtype) == -1:
+                        toast("Item Already in Library", duration=0.5)
                     self._close_dialog(instance=instance)
                 else:
-                    toast("Please Enter a vaild URL")
-            elif obj == self.typedialog:
-                a = Factory.AddItemDialog()
-                a.ids.drop_item.set_item(instance.text)
-                if a.ids.drop_item.current_item not in self.ItemTypes:
-                    self.itemtype = "ln"
-                    logger.debug(self.itemtype)
-                else:
-                    self.itemtype = (a.ids.drop_item.current_item).lower()
-                    logger.debug(self.itemtype)
-                self.typedialog.dismiss()
+                    toast("Please Enter a vaild URL", duration=0.5)
 
+    # callbacks here
     def _close_dialog(self, instance):
         # logger.debug(" -> Called")
         for obj in instance.walk_reverse():
@@ -606,7 +599,13 @@ class Library:
                 obj.dismiss()
         self.added_cat = False
 
-    # callbacks here
+    def _close_add_item_dialog(self, instance):
+        if self.typedialog:
+            self.typedialog.dismiss()
+
+    def _typedialog_on_release(self, instance_menu, instance_menu_item):
+        self.temp.ids.drop_item.set_item(instance_menu_item.text)
+        instance_menu.dismiss()
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
