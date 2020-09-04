@@ -409,4 +409,3 @@ class Base:
         if int(req.resp_status) != 200:
             Snackbar(text="Website Down Please Wait ...", duration=3).show()
         logger.debug("failed getting  status code %s ", req.resp_status)
-
