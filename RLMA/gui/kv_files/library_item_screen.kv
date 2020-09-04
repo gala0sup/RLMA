@@ -1,4 +1,7 @@
 #:kivy 1.11.1
+#:import font_path utils.font_path
+<CMDLabel@MDLabel>:
+    font_name : str(font_path / 'VLG.ttf')
 <panel_content>:
     size_hint: (2,None)
     height: self.minimum_height
@@ -90,15 +93,17 @@
                         MDBoxLayout:
                             orientation: "vertical"
                             size_hint : (None,0.9)
-                            width : dp(130)
-                            MDLabel:
+                            width : dp(150)
+                            CMDLabel:
                                 text : "Author : "+ (str(root.item_instance.scraper.about["Author"]) if len(root.item_instance.scraper.about["Author"]) else "N/A")
-                            MDLabel:
+                            CMDLabel:
                                 text : "Status : " + (str(root.item_instance.scraper.about["Status"]) if len(str(root.item_instance.scraper.about["Status"])) else "N/A")
-                            MDLabel:
+                            CMDLabel:
                                 text : "Updated : "+ (str(root.item_instance.scraper.about["Updated"]) if len(str(root.item_instance.scraper.about["Updated"])) else "N/A")
-                            MDLabel:
+                            CMDLabel:
                                 text : "Chapters : " + (str(root.item_instance.scraper.about["Chapters"]) if len(str(root.item_instance.scraper.about["Chapters"])) else "N/A")
+                        
+                            
         ChapterListTab:
             on_scroll_start:
                 root.scrollbar_callback(self,scrolling=True)
