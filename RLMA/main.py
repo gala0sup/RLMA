@@ -1,9 +1,9 @@
 from kivy.config import Config
 
-from core import logger
+from core.logger import Logger
 from gui.gui import RLMA
 
-# Config.set("kivy", "log_level", "debug")
+logger = Logger().getLogger()
 
 if __name__ == "__main__":
     a = RLMA()
