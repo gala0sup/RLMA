@@ -1,16 +1,22 @@
 import logging
-from rich.logging import RichHandler
 
 
 class Logger:
     def __init__(self):
-        self.format = logging.Formatter("%(funcName)s : %(message)s")
+        self.format = logging.Formatter(
+            f"%(levelname)s :   %(funcName)s   : %(message)s"
+        )
         self.level = logging.DEBUG
 
         self.logger = logging.getLogger("RLMA")
         self.logger.setLevel(self.level)
-        self.logger.addHandler(RichHandler())
-        self.logger.handlers[0].setFormatter(self.format)
+
+        console_handler = logging.StreamHandler()
+        console_handler.setLevel = self.logger.level
+        console_handler.setFormatter(self.format)
+
+        self.logger.addHandler(console_handler)
+        self.info("logger setup done")
 
     def getLogger(self):
         """returns logger instance"""
