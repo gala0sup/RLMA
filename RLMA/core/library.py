@@ -450,6 +450,8 @@ class Library:
     def add_category(self, *args, **kwargs):
         logger.debug("-> called")
         app = MDApp.get_running_app()
+        if self.categoriesDialog:
+            self.categoriesDialog.dismiss()
         dialog = MDDialog(
             title="Add New Category",
             content_cls=DialogMDTextField(hint_text="Enter New Category"),
@@ -472,8 +474,11 @@ class Library:
                 ),
             ],
         )
+        dialog.bind(
+            on_dismiss=lambda x: self.poly_callback("on_dismiss_add_category_dialog")
+        )
         dialog.set_normal_height()
-        dialog.open()
+        Clock.schedule_once(dialog.open, 0.5)
 
     def del_category(self, instance):
         logger.debug("-> called")
@@ -492,7 +497,6 @@ class Library:
             self.active_check = None
 
         Clock.schedule_once(self.categoriesDialog.open)
-
 
         self.categories.append(str(text))
         self._make_categoriesDialog()
@@ -605,6 +609,9 @@ class Library:
                         )
                     )
 
+    def poly_callback(self, caller):
+        if caller == "on_dismiss_add_category_dialog":
+            Clock.schedule_once(self.categoriesDialog.open, 0.5)
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
