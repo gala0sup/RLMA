@@ -255,8 +255,6 @@ class Library:
         self.added_cat = False
         self.active_check = None
         self.typedialog = None
-        self.itemtype = None
-        self.itemurl = None
         self.temp = None
         for path in self.LibraryPaths:
             logger.debug(path)
@@ -495,38 +493,6 @@ class Library:
 
         Clock.schedule_once(self.categoriesDialog.open)
 
-    def _ok_add_category_dialog(self, instance):
-        app = MDApp.get_running_app()
-        Clock.schedule_once(self.categoriesDialog.dismiss)
-        for obj in instance.walk_reverse():
-            if isinstance(obj, MDDialog):
-                text = obj.content_cls.ids.textfield.text
-                if text in self.categories:
-                    pass
-                else:
-                    logger.debug(f"adding {text}")
-
-                    # remove Edit Category tab
-                    app.root.ids.tabs_.remove_widget(
-                        app.root.ids.tabs_.get_tab_list()[0]
-                    )
-
-                    # add new tab
-                    app.root.ids.tabs_.add_widget(LibraryCategory(text=text))
-
-                    # re-add Edit Category tab
-                    app.root.ids.tabs_.add_widget(
-                        LibraryCategory(
-                            text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
-                            tab_alias="edit",
-                        )
-                    )
-                    # switch to the new added tab
-                    Clock.schedule_once(
-                        lambda x: app.root.ids.tabs_.switch_tab(
-                            app.root.ids.tabs_.get_tab_list()[1]
-                        )
-                    )
 
         self.categories.append(str(text))
         self._make_categoriesDialog()
@@ -575,6 +541,8 @@ class Library:
         )
         self.typedialog.bind(on_release=self._typedialog_on_release)
 
+    # callbacks here
+
     def _ok_add_item_dialog(self, instance):
         logger.debug("-> called")
 
@@ -583,15 +551,12 @@ class Library:
                 url = obj.content_cls.ids.textfield.text.replace(" ", "")
                 itemtype = obj.content_cls.ids.drop_item.text.lower()
                 if checkers.is_url(url):
-                    if itemtype not in self.ItemTypes:
-                        self.itemtype = "ln"
                     if self.add_item(link=url, type_=itemtype) == -1:
                         toast("Item Already in Library", duration=0.5)
                     self._close_dialog(instance=instance)
                 else:
                     toast("Please Enter a vaild URL", duration=0.5)
 
-    # callbacks here
     def _close_dialog(self, instance):
         # logger.debug(" -> Called")
         for obj in instance.walk_reverse():
@@ -606,6 +571,40 @@ class Library:
     def _typedialog_on_release(self, instance_menu, instance_menu_item):
         self.temp.ids.drop_item.set_item(instance_menu_item.text)
         instance_menu.dismiss()
+
+    def _ok_add_category_dialog(self, instance):
+        app = MDApp.get_running_app()
+        Clock.schedule_once(self.categoriesDialog.dismiss)
+        for obj in instance.walk_reverse():
+            if isinstance(obj, MDDialog):
+                text = obj.content_cls.ids.textfield.text
+                if text in self.categories:
+                    pass
+                else:
+                    logger.debug(f"adding {text}")
+
+                    # remove Edit Category tab
+                    app.root.ids.tabs_.remove_widget(
+                        app.root.ids.tabs_.get_tab_list()[0]
+                    )
+
+                    # add new tab
+                    app.root.ids.tabs_.add_widget(LibraryCategory(text=text))
+
+                    # re-add Edit Category tab
+                    app.root.ids.tabs_.add_widget(
+                        LibraryCategory(
+                            text=f"[size=20][font={fonts[-1]['fn_regular']}]{md_icons['pencil']}[/size][/font] Edit categories",
+                            tab_alias="edit",
+                        )
+                    )
+                    # switch to the new added tab
+                    Clock.schedule_once(
+                        lambda x: app.root.ids.tabs_.switch_tab(
+                            app.root.ids.tabs_.get_tab_list()[1]
+                        )
+                    )
+
 
 
 class LibraryCategory(ScrollView, MDTabsBase):
